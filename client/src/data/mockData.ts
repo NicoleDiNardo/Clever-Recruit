@@ -293,7 +293,7 @@ export const mockCompanies: Company[] = [
   {
     id: '1',
     name: 'Google',
-    logo: undefined,
+    logo: 'https://logo.debounce.com/google.com',
     industry: 'Technology',
     website: 'https://google.com',
     location: 'Mountain View, CA',
@@ -303,7 +303,7 @@ export const mockCompanies: Company[] = [
   {
     id: '2',
     name: 'Meta',
-    logo: undefined,
+    logo: 'https://logo.debounce.com/meta.com',
     industry: 'Technology',
     website: 'https://meta.com',
     location: 'Menlo Park, CA',
@@ -313,7 +313,7 @@ export const mockCompanies: Company[] = [
   {
     id: '3',
     name: 'Stripe',
-    logo: undefined,
+    logo: 'https://logo.debounce.com/stripe.com',
     industry: 'FinTech',
     website: 'https://stripe.com',
     location: 'San Francisco, CA',
@@ -323,7 +323,7 @@ export const mockCompanies: Company[] = [
   {
     id: '4',
     name: 'Spotify',
-    logo: undefined,
+    logo: 'https://logo.debounce.com/spotify.com',
     industry: 'Entertainment',
     website: 'https://spotify.com',
     location: 'Stockholm, Sweden',
@@ -333,7 +333,7 @@ export const mockCompanies: Company[] = [
   {
     id: '5',
     name: 'Airbnb',
-    logo: undefined,
+    logo: 'https://logo.debounce.com/airbnb.com',
     industry: 'Travel',
     website: 'https://airbnb.com',
     location: 'San Francisco, CA',
@@ -343,7 +343,7 @@ export const mockCompanies: Company[] = [
   {
     id: '6',
     name: 'Amazon',
-    logo: undefined,
+    logo: 'https://logo.debounce.com/amazon.com',
     industry: 'Technology',
     website: 'https://amazon.com',
     location: 'Seattle, WA',
@@ -353,7 +353,7 @@ export const mockCompanies: Company[] = [
   {
     id: '7',
     name: 'Netflix',
-    logo: undefined,
+    logo: 'https://logo.debounce.com/netflix.com',
     industry: 'Entertainment',
     website: 'https://netflix.com',
     location: 'Los Gatos, CA',
@@ -363,7 +363,7 @@ export const mockCompanies: Company[] = [
   {
     id: '8',
     name: 'Microsoft',
-    logo: undefined,
+    logo: 'https://logo.debounce.com/microsoft.com',
     industry: 'Technology',
     website: 'https://microsoft.com',
     location: 'Redmond, WA',

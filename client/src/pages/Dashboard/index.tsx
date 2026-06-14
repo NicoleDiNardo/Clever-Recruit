@@ -10,7 +10,6 @@ import {
   Badge,
   Avatar,
   Box,
-  Paper,
   RingProgress,
   SimpleGrid,
 } from '@mantine/core';
@@ -22,6 +21,7 @@ import {
   IconArrowUpRight,
   IconArrowDownRight,
 } from '@tabler/icons-react';
+import { useNavigate } from 'react-router-dom';
 
 interface StatCardProps {
   title: string;
@@ -29,12 +29,13 @@ interface StatCardProps {
   icon: React.ReactNode;
   color: string;
   change: number;
+  onClick?: () => void;
 }
 
-function StatCard({ title, value, icon, color, change }: StatCardProps) {
+function StatCard({ title, value, icon, color, change, onClick }: StatCardProps) {
   const isPositive = change > 0;
   return (
-    <Card withBorder padding="lg">
+    <Card withBorder padding="lg" style={{ cursor: onClick ? 'pointer' : undefined }} onClick={onClick}>
       <Group justify="space-between">
         <div>
           <Text size="xs" c="dimmed" tt="uppercase" fw={600}>
@@ -81,6 +82,7 @@ const recentActivity = [
     description: 'Robert Wolf was added as a new candidate',
     timestamp: '2 hours ago',
     user: { firstName: 'Jenny', lastName: 'Chen' },
+    link: '/candidates',
   },
   {
     id: '2',
@@ -88,6 +90,7 @@ const recentActivity = [
     description: 'Interview scheduled with Jill Lenon for Senior Engineer role',
     timestamp: '4 hours ago',
     user: { firstName: 'Mark', lastName: 'Williams' },
+    link: '/calendar',
   },
   {
     id: '3',
@@ -95,6 +98,7 @@ const recentActivity = [
     description: 'Noah Brown moved to Rejected stage',
     timestamp: '6 hours ago',
     user: { firstName: 'Sarah', lastName: 'Johnson' },
+    link: '/candidates',
   },
   {
     id: '4',
@@ -102,6 +106,7 @@ const recentActivity = [
     description: 'Note added to Sophia Martinez profile',
     timestamp: '8 hours ago',
     user: { firstName: 'Jenny', lastName: 'Chen' },
+    link: '/candidates',
   },
   {
     id: '5',
@@ -109,10 +114,12 @@ const recentActivity = [
     description: 'New job posted: Frontend Engineer at Microsoft',
     timestamp: '1 day ago',
     user: { firstName: 'David', lastName: 'Kim' },
+    link: '/jobs',
   },
 ];
 
 export function Dashboard() {
+  const navigate = useNavigate();
   const totalPipeline = pipelineStages.reduce((sum, s) => sum + s.count, 0);
 
   return (
@@ -131,6 +138,7 @@ export function Dashboard() {
           icon={<IconUsers size={24} />}
           color="blue"
           change={12}
+          onClick={() => navigate('/candidates')}
         />
         <StatCard
           title="Active Jobs"
@@ -138,6 +146,7 @@ export function Dashboard() {
           icon={<IconBriefcase size={24} />}
           color="teal"
           change={8}
+          onClick={() => navigate('/jobs')}
         />
         <StatCard
           title="Interviews This Week"
@@ -145,6 +154,7 @@ export function Dashboard() {
           icon={<IconCalendarEvent size={24} />}
           color="yellow"
           change={-5}
+          onClick={() => navigate('/calendar')}
         />
         <StatCard
           title="Placements This Month"
@@ -152,6 +162,7 @@ export function Dashboard() {
           icon={<IconUserCheck size={24} />}
           color="green"
           change={23}
+          onClick={() => navigate('/reports')}
         />
       </SimpleGrid>
 
@@ -213,7 +224,14 @@ export function Dashboard() {
             </Title>
             <Stack gap="md">
               {recentActivity.map((activity) => (
-                <Group key={activity.id} gap="sm" align="flex-start" wrap="nowrap">
+                <Group
+                  key={activity.id}
+                  gap="sm"
+                  align="flex-start"
+                  wrap="nowrap"
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => navigate(activity.link)}
+                >
                   <Avatar size="sm" radius="xl" color="blue">
                     {activity.user.firstName[0]}
                     {activity.user.lastName[0]}

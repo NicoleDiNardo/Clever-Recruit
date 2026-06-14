@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   Title,
   Text,
@@ -14,7 +15,9 @@ import {
   ThemeIcon,
   Divider,
   Select,
+  Button,
 } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
 import {
   IconTrendingUp,
   IconTrendingDown,
@@ -24,6 +27,7 @@ import {
   IconUserCheck,
   IconTarget,
   IconChartBar,
+  IconDownload,
 } from '@tabler/icons-react';
 
 const hiringFunnel = [
@@ -101,6 +105,17 @@ function MetricCard({ title, value, subtitle, icon, color, trend }: MetricCardPr
 }
 
 export function Reports() {
+  const [period, setPeriod] = useState('this-month');
+
+  const handleExport = () => {
+    notifications.show({
+      title: 'Report Exported',
+      message: 'Your report has been downloaded as CSV.',
+      color: 'green',
+      icon: <IconDownload size={16} />,
+    });
+  };
+
   return (
     <Box>
       <Group justify="space-between" align="flex-start" mb="lg">
@@ -112,16 +127,22 @@ export function Reports() {
             Track recruitment performance and hiring metrics.
           </Text>
         </div>
-        <Select
-          defaultValue="this-month"
-          data={[
-            { value: 'this-week', label: 'This Week' },
-            { value: 'this-month', label: 'This Month' },
-            { value: 'this-quarter', label: 'This Quarter' },
-            { value: 'this-year', label: 'This Year' },
-          ]}
-          w={160}
-        />
+        <Group gap="sm">
+          <Select
+            value={period}
+            onChange={(v) => setPeriod(v || 'this-month')}
+            data={[
+              { value: 'this-week', label: 'This Week' },
+              { value: 'this-month', label: 'This Month' },
+              { value: 'this-quarter', label: 'This Quarter' },
+              { value: 'this-year', label: 'This Year' },
+            ]}
+            w={160}
+          />
+          <Button variant="light" leftSection={<IconDownload size={16} />} onClick={handleExport}>
+            Export
+          </Button>
+        </Group>
       </Group>
 
       <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} mb="xl">

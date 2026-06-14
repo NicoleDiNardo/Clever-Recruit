@@ -2,12 +2,23 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/logo-mark.png" />
+    <link rel="icon" type="image/svg+xml" href="/logo-mark.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
     <title>Clever Recruit</title>
+    <script>
+      // Prevent flash of wrong color scheme
+      (function() {
+        var scheme = localStorage.getItem('mantine-color-scheme-value');
+        if (scheme === 'dark') {
+          document.documentElement.setAttribute('data-mantine-color-scheme', 'dark');
+        } else if (scheme === 'light' || !scheme) {
+          document.documentElement.setAttribute('data-mantine-color-scheme', 'light');
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

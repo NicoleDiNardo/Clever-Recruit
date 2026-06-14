@@ -11,13 +11,14 @@ import {
   Title,
   Box,
   Flex,
+  Button,
 } from '@mantine/core';
 import {
   IconChevronLeft,
   IconChevronRight,
   IconX,
   IconEdit,
-  IconSettings,
+  IconTrash,
   IconMail,
   IconPhone,
   IconMapPin,
@@ -31,6 +32,8 @@ interface CandidateDetailProps {
   onPrev: () => void;
   onNext: () => void;
   onClose: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
 }
 
 export function CandidateDetail({
@@ -40,6 +43,8 @@ export function CandidateDetail({
   onPrev,
   onNext,
   onClose,
+  onEdit,
+  onDelete,
 }: CandidateDetailProps) {
   const getJobTitleColor = (title?: string) => {
     if (!title) return 'gray';
@@ -80,11 +85,11 @@ export function CandidateDetail({
               {candidate.firstName} {candidate.lastName}
             </Title>
             <Group gap={4}>
-              <ActionIcon variant="subtle" size="sm">
-                <IconSettings size={16} />
-              </ActionIcon>
-              <ActionIcon variant="subtle" size="sm">
+              <ActionIcon variant="subtle" size="sm" onClick={onEdit}>
                 <IconEdit size={16} />
+              </ActionIcon>
+              <ActionIcon variant="subtle" size="sm" color="red" onClick={onDelete}>
+                <IconTrash size={16} />
               </ActionIcon>
             </Group>
           </Group>
@@ -192,36 +197,7 @@ export function CandidateDetail({
             ))}
           </Stack>
         ) : (
-          <Stack gap="xs">
-            <Card withBorder padding="sm">
-              <Group justify="space-between">
-                <Group gap="sm">
-                  <Avatar size="sm" radius="sm" color="gray">
-                    C
-                  </Avatar>
-                  <div>
-                    <Text size="sm" fw={500}>Role</Text>
-                    <Text size="xs" c="dimmed">Company Name</Text>
-                  </div>
-                </Group>
-                <Badge variant="light" size="xs">Technical Assignment</Badge>
-              </Group>
-            </Card>
-            <Card withBorder padding="sm">
-              <Group justify="space-between">
-                <Group gap="sm">
-                  <Avatar size="sm" radius="sm" color="gray">
-                    C
-                  </Avatar>
-                  <div>
-                    <Text size="sm" fw={500}>Role</Text>
-                    <Text size="xs" c="dimmed">Company Name</Text>
-                  </div>
-                </Group>
-                <Badge variant="light" size="xs">Assigned</Badge>
-              </Group>
-            </Card>
-          </Stack>
+          <Text size="sm" c="dimmed">No assignments yet</Text>
         )}
       </Box>
 
@@ -235,21 +211,24 @@ export function CandidateDetail({
 
         <Tabs.Panel value="notes" pt="sm">
           <Stack gap="xs">
-            {[1, 2, 3, 4].map((i) => (
-              <Card key={i} withBorder padding="sm">
-                <Group justify="space-between" mb={4}>
-                  <Text size="sm" fw={500}>
-                    Note Title
-                  </Text>
-                  <Text size="xs" c="dimmed">
-                    13/04/25 14:00
-                  </Text>
-                </Group>
-                <Text size="xs" c="dimmed">
-                  This is a note
-                </Text>
-              </Card>
-            ))}
+            <Card withBorder padding="sm">
+              <Group justify="space-between" mb={4}>
+                <Text size="sm" fw={500}>Initial screening completed</Text>
+                <Text size="xs" c="dimmed">13/04/25 14:00</Text>
+              </Group>
+              <Text size="xs" c="dimmed">
+                Candidate showed strong technical skills during the initial phone screen.
+              </Text>
+            </Card>
+            <Card withBorder padding="sm">
+              <Group justify="space-between" mb={4}>
+                <Text size="sm" fw={500}>Resume reviewed</Text>
+                <Text size="xs" c="dimmed">10/04/25 09:30</Text>
+              </Group>
+              <Text size="xs" c="dimmed">
+                Good experience with relevant technologies. Moving forward.
+              </Text>
+            </Card>
           </Stack>
         </Tabs.Panel>
 
@@ -274,6 +253,17 @@ export function CandidateDetail({
           </Stack>
         </Tabs.Panel>
       </Tabs>
+
+      <Divider />
+
+      <Group>
+        <Button variant="light" leftSection={<IconEdit size={16} />} onClick={onEdit}>
+          Edit
+        </Button>
+        <Button variant="light" color="red" leftSection={<IconTrash size={16} />} onClick={onDelete}>
+          Delete
+        </Button>
+      </Group>
     </Stack>
   );
 }

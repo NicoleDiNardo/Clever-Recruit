@@ -14,15 +14,17 @@ import {
   Center,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
+import { useUser } from '../../context/UserContext';
 
 export function Login() {
   const navigate = useNavigate();
+  const { login, isAuthenticated } = useUser();
 
   const form = useForm({
     initialValues: {
-      email: '',
-      password: '',
+      email: 'jenny@cleverrecruit.com',
+      password: 'password',
       remember: false,
     },
     validate: {
@@ -31,8 +33,12 @@ export function Login() {
     },
   });
 
-  const handleSubmit = form.onSubmit(() => {
-    localStorage.setItem('token', 'demo-token');
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  const handleSubmit = form.onSubmit((values) => {
+    login(values.email, values.password);
     navigate('/dashboard');
   });
 
@@ -56,7 +62,7 @@ export function Login() {
       >
         <Center mb="xl">
           <Group gap="xs">
-            <img src="/logo-mark.png" alt="Clever Recruit" height={40} />
+            <img src="/logo-mark.svg" alt="Clever Recruit" height={40} style={{ filter: 'brightness(0) saturate(100%) invert(37%) sepia(93%) saturate(1352%) hue-rotate(196deg) brightness(96%) contrast(91%)' }} />
             <Text fw={700} size="xl" c="blue.7">
               Clever Recruit
             </Text>

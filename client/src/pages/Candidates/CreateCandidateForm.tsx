@@ -8,25 +8,28 @@ import {
   Grid,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
+import type { Candidate } from '../../types';
 
 interface CreateCandidateFormProps {
   onClose: () => void;
+  onSubmit?: (values: Record<string, unknown>) => void;
+  initialValues?: Candidate;
 }
 
-export function CreateCandidateForm({ onClose }: CreateCandidateFormProps) {
+export function CreateCandidateForm({ onClose, onSubmit, initialValues }: CreateCandidateFormProps) {
   const form = useForm({
     initialValues: {
-      firstName: '',
-      lastName: '',
-      email: '',
-      phone: '',
-      jobTitle: '',
-      score: 0,
-      status: 'active',
-      location: '',
-      currentPosition: '',
-      currentOrganization: '',
-      employmentStatus: '',
+      firstName: initialValues?.firstName || '',
+      lastName: initialValues?.lastName || '',
+      email: initialValues?.email || '',
+      phone: initialValues?.phone || '',
+      jobTitle: initialValues?.jobTitle || '',
+      score: initialValues?.score || 0,
+      status: initialValues?.status || 'active',
+      location: initialValues?.location || '',
+      currentPosition: initialValues?.currentPosition || '',
+      currentOrganization: initialValues?.currentOrganization || '',
+      employmentStatus: initialValues?.employmentStatus || '',
     },
     validate: {
       firstName: (v) => (v.length < 1 ? 'First name is required' : null),
@@ -36,8 +39,11 @@ export function CreateCandidateForm({ onClose }: CreateCandidateFormProps) {
   });
 
   const handleSubmit = form.onSubmit((values) => {
-    console.log('Creating candidate:', values);
-    onClose();
+    if (onSubmit) {
+      onSubmit(values);
+    } else {
+      onClose();
+    }
   });
 
   return (
@@ -150,7 +156,7 @@ export function CreateCandidateForm({ onClose }: CreateCandidateFormProps) {
           <Button variant="light" onClick={onClose}>
             Cancel
           </Button>
-          <Button type="submit">Create Candidate</Button>
+          <Button type="submit">{initialValues ? 'Save Changes' : 'Create Candidate'}</Button>
         </Group>
       </Stack>
     </form>

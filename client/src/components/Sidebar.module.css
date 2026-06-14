@@ -2,8 +2,8 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  background-color: white;
-  border-right: 1px solid var(--mantine-color-gray-2);
+  background-color: var(--mantine-color-body);
+  border-right: 1px solid var(--mantine-color-default-border);
 }
 
 .link {
@@ -18,11 +18,11 @@
 }
 
 .link:hover {
-  background-color: var(--mantine-color-blue-0);
-  color: var(--mantine-color-blue-6);
+  background-color: light-dark(var(--mantine-color-blue-0), var(--mantine-color-blue-9));
+  color: light-dark(var(--mantine-color-blue-6), var(--mantine-color-blue-4));
 }
 
 .link[data-active] {
-  background-color: var(--mantine-color-blue-1);
-  color: var(--mantine-color-blue-7);
+  background-color: light-dark(var(--mantine-color-blue-1), var(--mantine-color-blue-9));
+  color: light-dark(var(--mantine-color-blue-7), var(--mantine-color-blue-3));
 }

@@ -20,6 +20,7 @@ import {
 } from '@mantine/core';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import { useForm } from '@mantine/form';
+import { notifications } from '@mantine/notifications';
 import {
   IconSearch,
   IconPlus,
@@ -29,18 +30,24 @@ import {
   IconCurrencyDollar,
   IconUsers,
   IconBuilding,
+  IconCheck,
 } from '@tabler/icons-react';
-import { mockJobs, mockCompanies } from '../../data/mockData';
+import { mockCompanies } from '../../data/mockData';
 import type { Job } from '../../types';
+import { mockJobs as initialJobs } from '../../data/mockData';
 
 export function Jobs() {
+  const [jobs, setJobs] = useState<Job[]>(initialJobs);
   const [search, setSearch] = useState('');
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [detailOpened, { open: openDetail, close: closeDetail }] = useDisclosure(false);
   const [createOpened, { open: openCreate, close: closeCreate }] = useDisclosure(false);
+  const [editOpened, { open: openEdit, close: closeEdit }] = useDisclosure(false);
+  const [deleteOpened, { open: openDelete, close: closeDelete }] = useDisclosure(false);
+  const [jobToDelete, setJobToDelete] = useState<Job | null>(null);
   const isMobile = useMediaQuery('(max-width: 768px)');
 
-  const filteredJobs = mockJobs.filter((j) => {
+  const filteredJobs = jobs.filter((j) => {
     if (!search) return true;
     const s = search.toLowerCase();
     return (
@@ -59,7 +66,7 @@ export function Jobs() {
     }
   };
 
-  const form = useForm({
+  const createForm = useForm({
     initialValues: {
       title: '',
       companyId: '',
@@ -75,10 +82,115 @@ export function Jobs() {
     },
   });
 
-  const handleCreateSubmit = form.onSubmit((values) => {
-    console.log('Creating job:', values);
+  const editForm = useForm({
+    initialValues: {
+      title: '',
+      companyId: '',
+      location: '',
+      type: 'Full-time',
+      salary: '',
+      description: '',
+      status: 'open',
+    },
+    validate: {
+      title: (v) => (v.length < 1 ? 'Title is required' : null),
+      companyId: (v) => (v.length < 1 ? 'Company is required' : null),
+    },
+  });
+
+  const handleCreate = createForm.onSubmit((values) => {
+    const company = mockCompanies.find((c) => c.id === values.companyId);
+    const newJob: Job = {
+      id: String(Date.now()),
+      title: values.title,
+      description: values.description,
+      location: values.location,
+      type: values.type,
+      salary: values.salary,
+      status: values.status as Job['status'],
+      companyId: values.companyId,
+      company,
+      createdAt: new Date().toISOString(),
+    };
+    setJobs((prev) => [newJob, ...prev]);
     closeCreate();
-    form.reset();
+    createForm.reset();
+    notifications.show({
+      title: 'Job Created',
+      message: `"${newJob.title}" has been created successfully.`,
+      color: 'green',
+      icon: <IconCheck size={16} />,
+    });
+  });
+
+  const handleOpenEdit = (job: Job) => {
+    editForm.setValues({
+      title: job.title,
+      companyId: job.companyId || '',
+      location: job.location || '',
+      type: job.type || 'Full-time',
+      salary: job.salary || '',
+      description: job.description || '',
+      status: job.status,
+    });
+    setSelectedJob(job);
+    openEdit();
+  };
+
+  const handleEditSubmit = editForm.onSubmit((values) => {
+    if (!selectedJob) return;
+    const company = mockCompanies.find((c) => c.id === values.companyId);
+    setJobs((prev) =>
+      prev.map((j) =>
+        j.id === selectedJob.id
+          ? { ...j, ...values, company, companyId: values.companyId, status: values.status as Job['status'] }
+          : j
+      )
+    );
+    if (selectedJob) {
+      setSelectedJob({ ...selectedJob, ...values, company, companyId: values.companyId, status: values.status as Job['status'] });
+    }
+    closeEdit();
+    notifications.show({
+      title: 'Job Updated',
+      message: `"${values.title}" has been updated successfully.`,
+      color: 'blue',
+      icon: <IconCheck size={16} />,
+    });
+  });
+
+  const handleCloseJob = (job: Job) => {
+    setJobs((prev) =>
+      prev.map((j) => (j.id === job.id ? { ...j, status: 'closed' } : j))
+    );
+    if (selectedJob?.id === job.id) {
+      setSelectedJob({ ...job, status: 'closed' });
+    }
+    closeDetail();
+    notifications.show({
+      title: 'Job Closed',
+      message: `"${job.title}" has been closed.`,
+      color: 'orange',
+    });
+  };
+
+  const handleDeleteJob = () => {
+    if (!jobToDelete) return;
+    setJobs((prev) => prev.filter((j) => j.id !== jobToDelete.id));
+    closeDelete();
+    closeDetail();
+    notifications.show({
+      title: 'Job Deleted',
+      message: `"${jobToDelete.title}" has been deleted.`,
+      color: 'red',
+      icon: <IconTrash size={16} />,
+    });
+    setJobToDelete(null);
+  };
+
+  const candidateCounts: Record<string, number> = {};
+  jobs.forEach((job) => {
+    candidateCounts[job.id] = Math.floor(Math.random() * 20) + 3;
   });
 
   return (
@@ -141,7 +253,12 @@ export function Jobs() {
                   </Text>
                 </Table.Td>
                 <Table.Td>
-                  <Text size="sm">{job.company?.name}</Text>
+                  <Group gap="xs">
+                    {job.company?.logo && (
+                      <img src={job.company.logo} alt={job.company.name} width={20} height={20} style={{ borderRadius: 4 }} />
+                    )}
+                    <Text size="sm">{job.company?.name}</Text>
+                  </Group>
                 </Table.Td>
                 <Table.Td>
                   <Text size="sm" c="dimmed">
@@ -163,15 +280,28 @@ export function Jobs() {
                 </Table.Td>
                 <Table.Td>
                   <Badge variant="light" color="gray" size="sm">
-                    {Math.floor(Math.random() * 20) + 3}
+                    {candidateCounts[job.id] || 0}
                   </Badge>
                 </Table.Td>
                 <Table.Td>
                   <Group gap={4} onClick={(e) => e.stopPropagation()}>
-                    <ActionIcon variant="subtle" color="gray" size="sm">
+                    <ActionIcon
+                      variant="subtle"
+                      color="gray"
+                      size="sm"
+                      onClick={() => handleOpenEdit(job)}
+                    >
                       <IconEdit size={16} />
                     </ActionIcon>
-                    <ActionIcon variant="subtle" color="red" size="sm">
+                    <ActionIcon
+                      variant="subtle"
+                      color="red"
+                      size="sm"
+                      onClick={() => {
+                        setJobToDelete(job);
+                        openDelete();
+                      }}
+                    >
                       <IconTrash size={16} />
                     </ActionIcon>
                   </Group>
@@ -182,6 +312,7 @@ export function Jobs() {
         </Table>
       </Box>
 
+      {/* Detail Drawer */}
       <Drawer
         opened={detailOpened}
         onClose={closeDetail}
@@ -195,7 +326,11 @@ export function Jobs() {
             <Title order={3}>{selectedJob.title}</Title>
             <Group gap="md">
               <Group gap={4}>
-                <IconBuilding size={16} color="gray" />
+                {selectedJob.company?.logo ? (
+                  <img src={selectedJob.company.logo} alt={selectedJob.company.name} width={18} height={18} style={{ borderRadius: 4 }} />
+                ) : (
+                  <IconBuilding size={16} color="gray" />
+                )}
                 <Text size="sm">{selectedJob.company?.name}</Text>
               </Group>
               <Group gap={4}>
@@ -231,64 +366,103 @@ export function Jobs() {
                 <Text size="sm" fw={500}>Candidates Applied</Text>
               </Group>
               <Text size="lg" fw={700}>
-                {Math.floor(Math.random() * 20) + 3}
+                {candidateCounts[selectedJob.id] || 0}
               </Text>
             </Card>
 
             <Group>
-              <Button variant="light" leftSection={<IconEdit size={16} />}>
+              <Button
+                variant="light"
+                leftSection={<IconEdit size={16} />}
+                onClick={() => {
+                  closeDetail();
+                  handleOpenEdit(selectedJob);
+                }}
+              >
                 Edit Job
               </Button>
-              <Button variant="light" color="red" leftSection={<IconTrash size={16} />}>
-                Close Job
+              {selectedJob.status !== 'closed' ? (
+                <Button
+                  variant="light"
+                  color="orange"
+                  onClick={() => handleCloseJob(selectedJob)}
+                >
+                  Close Job
+                </Button>
+              ) : (
+                <Button
+                  variant="light"
+                  color="green"
+                  onClick={() => {
+                    setJobs((prev) =>
+                      prev.map((j) => (j.id === selectedJob.id ? { ...j, status: 'open' } : j))
+                    );
+                    setSelectedJob({ ...selectedJob, status: 'open' });
+                    notifications.show({ title: 'Job Reopened', message: `"${selectedJob.title}" is now open.`, color: 'green' });
+                  }}
+                >
+                  Reopen Job
+                </Button>
+              )}
+              <Button
+                variant="light"
+                color="red"
+                leftSection={<IconTrash size={16} />}
+                onClick={() => {
+                  setJobToDelete(selectedJob);
+                  openDelete();
+                }}
+              >
+                Delete
               </Button>
             </Group>
           </Stack>
         )}
       </Drawer>
 
+      {/* Create Modal */}
       <Modal opened={createOpened} onClose={closeCreate} title="Create New Job" size="lg">
-        <form onSubmit={handleCreateSubmit}>
+        <form onSubmit={handleCreate}>
           <Stack gap="md">
             <TextInput
               label="Job Title"
               placeholder="e.g. Senior Software Engineer"
               required
-              {...form.getInputProps('title')}
+              {...createForm.getInputProps('title')}
             />
             <Select
               label="Company"
               placeholder="Select company"
               required
               data={mockCompanies.map((c) => ({ value: c.id, label: c.name }))}
-              {...form.getInputProps('companyId')}
+              {...createForm.getInputProps('companyId')}
             />
             <Grid>
               <Grid.Col span={6}>
                 <TextInput
                   label="Location"
                   placeholder="e.g. San Francisco, CA"
-                  {...form.getInputProps('location')}
+                  {...createForm.getInputProps('location')}
                 />
               </Grid.Col>
               <Grid.Col span={6}>
                 <Select
                   label="Type"
                   data={['Full-time', 'Part-time', 'Contract', 'Internship']}
-                  {...form.getInputProps('type')}
+                  {...createForm.getInputProps('type')}
                 />
               </Grid.Col>
             </Grid>
             <TextInput
               label="Salary Range"
               placeholder="e.g. $120,000 - $160,000"
-              {...form.getInputProps('salary')}
+              {...createForm.getInputProps('salary')}
             />
             <Textarea
               label="Description"
               placeholder="Job description..."
               minRows={4}
-              {...form.getInputProps('description')}
+              {...createForm.getInputProps('description')}
             />
             <Group justify="flex-end" mt="md">
               <Button variant="light" onClick={closeCreate}>Cancel</Button>
@@ -296,6 +470,78 @@ export function Jobs() {
             </Group>
           </Stack>
         </form>
+      </Modal>
+
+      {/* Edit Modal */}
+      <Modal opened={editOpened} onClose={closeEdit} title="Edit Job" size="lg">
+        <form onSubmit={handleEditSubmit}>
+          <Stack gap="md">
+            <TextInput
+              label="Job Title"
+              placeholder="e.g. Senior Software Engineer"
+              required
+              {...editForm.getInputProps('title')}
+            />
+            <Select
+              label="Company"
+              placeholder="Select company"
+              required
+              data={mockCompanies.map((c) => ({ value: c.id, label: c.name }))}
+              {...editForm.getInputProps('companyId')}
+            />
+            <Grid>
+              <Grid.Col span={6}>
+                <TextInput
+                  label="Location"
+                  placeholder="e.g. San Francisco, CA"
+                  {...editForm.getInputProps('location')}
+                />
+              </Grid.Col>
+              <Grid.Col span={6}>
+                <Select
+                  label="Type"
+                  data={['Full-time', 'Part-time', 'Contract', 'Internship']}
+                  {...editForm.getInputProps('type')}
+                />
+              </Grid.Col>
+            </Grid>
+            <TextInput
+              label="Salary Range"
+              placeholder="e.g. $120,000 - $160,000"
+              {...editForm.getInputProps('salary')}
+            />
+            <Select
+              label="Status"
+              data={[
+                { value: 'open', label: 'Open' },
+                { value: 'closed', label: 'Closed' },
+                { value: 'paused', label: 'Paused' },
+              ]}
+              {...editForm.getInputProps('status')}
+            />
+            <Textarea
+              label="Description"
+              placeholder="Job description..."
+              minRows={4}
+              {...editForm.getInputProps('description')}
+            />
+            <Group justify="flex-end" mt="md">
+              <Button variant="light" onClick={closeEdit}>Cancel</Button>
+              <Button type="submit">Save Changes</Button>
+            </Group>
+          </Stack>
+        </form>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal opened={deleteOpened} onClose={closeDelete} title="Delete Job" size="sm">
+        <Text size="sm" mb="lg">
+          Are you sure you want to delete <strong>"{jobToDelete?.title}"</strong>? This action cannot be undone.
+        </Text>
+        <Group justify="flex-end">
+          <Button variant="light" onClick={closeDelete}>Cancel</Button>
+          <Button color="red" onClick={handleDeleteJob}>Delete</Button>
+        </Group>
       </Modal>
     </Box>
   );

@@ -17,8 +17,10 @@ import {
   Flex,
   Menu,
   Modal,
+  Select,
 } from '@mantine/core';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
+import { notifications } from '@mantine/notifications';
 import {
   IconSearch,
   IconFilter,
@@ -28,31 +30,42 @@ import {
   IconDots,
   IconSortAscending,
   IconSortDescending,
+  IconCheck,
+  IconX,
 } from '@tabler/icons-react';
 import { CandidateDetail } from './CandidateDetail';
 import { CreateCandidateForm } from './CreateCandidateForm';
-import { mockCandidates } from '../../data/mockData';
+import { mockCandidates as initialCandidates } from '../../data/mockData';
 import type { Candidate } from '../../types';
 
 export function Candidates() {
+  const [candidates, setCandidates] = useState<Candidate[]>(initialCandidates);
   const [search, setSearch] = useState('');
-  const [ownOnly, setOwnOnly] = useState(true);
+  const [ownOnly, setOwnOnly] = useState(false);
+  const [filterStatus, setFilterStatus] = useState<string | null>(null);
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [detailOpened, { open: openDetail, close: closeDetail }] = useDisclosure(false);
   const [createOpened, { open: openCreate, close: closeCreate }] = useDisclosure(false);
+  const [editOpened, { open: openEditModal, close: closeEditModal }] = useDisclosure(false);
+  const [deleteOpened, { open: openDelete, close: closeDelete }] = useDisclosure(false);
+  const [filterOpened, { open: openFilter, close: closeFilter }] = useDisclosure(false);
+  const [candidateToDelete, setCandidateToDelete] = useState<Candidate | null>(null);
+  const [candidateToEdit, setCandidateToEdit] = useState<Candidate | null>(null);
   const [sortBy, setSortBy] = useState<string>('');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [page, setPage] = useState(1);
   const isMobile = useMediaQuery('(max-width: 768px)');
 
-  const filteredCandidates = mockCandidates.filter((c) => {
+  const filteredCandidates = candidates.filter((c) => {
     const matchesSearch =
       !search ||
       `${c.firstName} ${c.lastName}`.toLowerCase().includes(search.toLowerCase()) ||
       c.email.toLowerCase().includes(search.toLowerCase()) ||
       (c.jobTitle && c.jobTitle.toLowerCase().includes(search.toLowerCase()));
-    return matchesSearch;
+    const matchesOwner = !ownOnly || c.ownerId === '1';
+    const matchesStatus = !filterStatus || c.status === filterStatus;
+    return matchesSearch && matchesOwner && matchesStatus;
   });
 
   const sortedCandidates = [...filteredCandidates].sort((a, b) => {
@@ -96,6 +109,82 @@ export function Candidates() {
       setSelectedIndex(newIndex);
       setSelectedCandidate(sortedCandidates[newIndex]);
     }
+  };
+
+  const handleCreateCandidate = (values: Record<string, unknown>) => {
+    const newCandidate: Candidate = {
+      id: String(Date.now()),
+      firstName: values.firstName as string,
+      lastName: values.lastName as string,
+      email: values.email as string,
+      phone: (values.phone as string) || '',
+      avatar: undefined,
+      jobTitle: (values.jobTitle as string) || undefined,
+      score: (values.score as number) || undefined,
+      status: (values.status as string) || 'active',
+      stage: undefined,
+      location: (values.location as string) || undefined,
+      currentPosition: (values.currentPosition as string) || undefined,
+      currentOrganization: (values.currentOrganization as string) || undefined,
+      employmentStatus: (values.employmentStatus as string) || undefined,
+      ownerId: '1',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    setCandidates((prev) => [newCandidate, ...prev]);
+    closeCreate();
+    notifications.show({
+      title: 'Candidate Created',
+      message: `${newCandidate.firstName} ${newCandidate.lastName} has been added.`,
+      color: 'green',
+      icon: <IconCheck size={16} />,
+    });
+  };
+
+  const handleEditCandidate = (values: Record<string, unknown>) => {
+    if (!candidateToEdit) return;
+    setCandidates((prev) =>
+      prev.map((c) =>
+        c.id === candidateToEdit.id
+          ? {
+              ...c,
+              firstName: values.firstName as string,
+              lastName: values.lastName as string,
+              email: values.email as string,
+              phone: (values.phone as string) || c.phone,
+              jobTitle: (values.jobTitle as string) || c.jobTitle,
+              score: (values.score as number) || c.score,
+              status: (values.status as string) || c.status,
+              location: (values.location as string) || c.location,
+              currentPosition: (values.currentPosition as string) || c.currentPosition,
+              currentOrganization: (values.currentOrganization as string) || c.currentOrganization,
+              employmentStatus: (values.employmentStatus as string) || c.employmentStatus,
+              updatedAt: new Date().toISOString(),
+            }
+          : c
+      )
+    );
+    closeEditModal();
+    notifications.show({
+      title: 'Candidate Updated',
+      message: `${values.firstName} ${values.lastName} has been updated.`,
+      color: 'blue',
+      icon: <IconCheck size={16} />,
+    });
+  };
+
+  const handleDelete = () => {
+    if (!candidateToDelete) return;
+    setCandidates((prev) => prev.filter((c) => c.id !== candidateToDelete.id));
+    closeDelete();
+    closeDetail();
+    notifications.show({
+      title: 'Candidate Deleted',
+      message: `${candidateToDelete.firstName} ${candidateToDelete.lastName} has been removed.`,
+      color: 'red',
+      icon: <IconTrash size={16} />,
+    });
+    setCandidateToDelete(null);
   };
 
   const SortIcon = ({ column }: { column: string }) => {
@@ -177,9 +266,14 @@ export function Candidates() {
             onChange={(e) => setOwnOnly(e.currentTarget.checked)}
             color="teal"
           />
-          <Button variant="light" leftSection={<IconFilter size={16} />}>
-            Open filters
+          <Button variant="light" leftSection={<IconFilter size={16} />} onClick={openFilter}>
+            {filterStatus ? `Filter: ${filterStatus}` : 'Open filters'}
           </Button>
+          {filterStatus && (
+            <ActionIcon variant="subtle" color="red" onClick={() => setFilterStatus(null)} size="sm">
+              <IconX size={14} />
+            </ActionIcon>
+          )}
         </Group>
       </Flex>
 
@@ -286,10 +380,26 @@ export function Candidates() {
                 </Table.Td>
                 <Table.Td>
                   <Group gap={4} onClick={(e) => e.stopPropagation()}>
-                    <ActionIcon variant="subtle" color="gray" size="sm">
+                    <ActionIcon
+                      variant="subtle"
+                      color="gray"
+                      size="sm"
+                      onClick={() => {
+                        setCandidateToEdit(candidate);
+                        openEditModal();
+                      }}
+                    >
                       <IconEdit size={16} />
                     </ActionIcon>
-                    <ActionIcon variant="subtle" color="red" size="sm">
+                    <ActionIcon
+                      variant="subtle"
+                      color="red"
+                      size="sm"
+                      onClick={() => {
+                        setCandidateToDelete(candidate);
+                        openDelete();
+                      }}
+                    >
                       <IconTrash size={16} />
                     </ActionIcon>
                     <Menu shadow="md" width={160}>
@@ -299,10 +409,23 @@ export function Candidates() {
                         </ActionIcon>
                       </Menu.Target>
                       <Menu.Dropdown>
-                        <Menu.Item leftSection={<IconEdit size={14} />}>
+                        <Menu.Item
+                          leftSection={<IconEdit size={14} />}
+                          onClick={() => {
+                            setCandidateToEdit(candidate);
+                            openEditModal();
+                          }}
+                        >
                           Edit
                         </Menu.Item>
-                        <Menu.Item leftSection={<IconTrash size={14} />} color="red">
+                        <Menu.Item
+                          leftSection={<IconTrash size={14} />}
+                          color="red"
+                          onClick={() => {
+                            setCandidateToDelete(candidate);
+                            openDelete();
+                          }}
+                        >
                           Delete
                         </Menu.Item>
                       </Menu.Dropdown>
@@ -321,6 +444,7 @@ export function Candidates() {
         </Flex>
       )}
 
+      {/* Detail Drawer */}
       <Drawer
         opened={detailOpened}
         onClose={closeDetail}
@@ -337,17 +461,77 @@ export function Candidates() {
             onPrev={handlePrevCandidate}
             onNext={handleNextCandidate}
             onClose={closeDetail}
+            onEdit={() => {
+              setCandidateToEdit(selectedCandidate);
+              closeDetail();
+              openEditModal();
+            }}
+            onDelete={() => {
+              setCandidateToDelete(selectedCandidate);
+              openDelete();
+            }}
           />
         )}
       </Drawer>
 
+      {/* Create Modal */}
       <Modal
         opened={createOpened}
         onClose={closeCreate}
         title="Create New Candidate"
         size="lg"
       >
-        <CreateCandidateForm onClose={closeCreate} />
+        <CreateCandidateForm onClose={closeCreate} onSubmit={handleCreateCandidate} />
+      </Modal>
+
+      {/* Edit Modal */}
+      <Modal
+        opened={editOpened}
+        onClose={closeEditModal}
+        title="Edit Candidate"
+        size="lg"
+      >
+        {candidateToEdit && (
+          <CreateCandidateForm
+            onClose={closeEditModal}
+            onSubmit={handleEditCandidate}
+            initialValues={candidateToEdit}
+          />
+        )}
+      </Modal>
+
+      {/* Filter Modal */}
+      <Modal opened={filterOpened} onClose={closeFilter} title="Filter Candidates" size="sm">
+        <Stack gap="md">
+          <Select
+            label="Status"
+            placeholder="All statuses"
+            data={[
+              { value: 'active', label: 'Active' },
+              { value: 'inactive', label: 'Inactive' },
+            ]}
+            value={filterStatus}
+            onChange={(val) => setFilterStatus(val)}
+            clearable
+          />
+          <Group justify="flex-end">
+            <Button variant="light" onClick={() => { setFilterStatus(null); closeFilter(); }}>
+              Clear All
+            </Button>
+            <Button onClick={closeFilter}>Apply</Button>
+          </Group>
+        </Stack>
+      </Modal>
+
+      {/* Delete Confirmation */}
+      <Modal opened={deleteOpened} onClose={closeDelete} title="Delete Candidate" size="sm">
+        <Text size="sm" mb="lg">
+          Are you sure you want to delete <strong>{candidateToDelete?.firstName} {candidateToDelete?.lastName}</strong>? This action cannot be undone.
+        </Text>
+        <Group justify="flex-end">
+          <Button variant="light" onClick={closeDelete}>Cancel</Button>
+          <Button color="red" onClick={handleDelete}>Delete</Button>
+        </Group>
       </Modal>
     </Box>
   );
