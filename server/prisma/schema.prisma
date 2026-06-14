@@ -1,0 +1,123 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  firstName String
+  lastName  String
+  avatar    String?
+  role      String   @default("recruiter")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  ownedCandidates Candidate[] @relation("CandidateOwner")
+  notes           Note[]
+  tasks           Task[]
+}
+
+model Candidate {
+  id                  String   @id @default(cuid())
+  firstName           String
+  lastName            String
+  email               String   @unique
+  phone               String?
+  avatar              String?
+  jobTitle            String?
+  score               Int?
+  status              String   @default("active")
+  stage               String?
+  location            String?
+  currentPosition     String?
+  currentOrganization String?
+  employmentStatus    String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  ownerId     String?
+  owner       User?        @relation("CandidateOwner", fields: [ownerId], references: [id])
+  assignments Assignment[]
+  notes       Note[]
+  tasks       Task[]
+}
+
+model Company {
+  id        String   @id @default(cuid())
+  name      String
+  logo      String?
+  industry  String?
+  website   String?
+  location  String?
+  size      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  jobs        Job[]
+  assignments Assignment[]
+}
+
+model Job {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  location    String?
+  type        String?
+  salary      String?
+  status      String   @default("open")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  companyId   String
+  company     Company      @relation(fields: [companyId], references: [id])
+  assignments Assignment[]
+}
+
+model Assignment {
+  id        String   @id @default(cuid())
+  stage     String   @default("applied")
+  type      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  candidateId String
+  candidate   Candidate @relation(fields: [candidateId], references: [id])
+  jobId       String
+  job         Job       @relation(fields: [jobId], references: [id])
+  companyId   String
+  company     Company   @relation(fields: [companyId], references: [id])
+}
+
+model Note {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  candidateId String
+  candidate   Candidate @relation(fields: [candidateId], references: [id])
+  authorId    String
+  author      User      @relation(fields: [authorId], references: [id])
+}
+
+model Task {
+  id        String   @id @default(cuid())
+  title     String
+  content   String?
+  dueDate   DateTime?
+  completed Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  candidateId String
+  candidate   Candidate @relation(fields: [candidateId], references: [id])
+  assigneeId  String
+  assignee    User      @relation(fields: [assigneeId], references: [id])
+}

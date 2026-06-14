@@ -1,0 +1,28 @@
+.navbar {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+  border-right: 1px solid var(--mantine-color-gray-2);
+}
+
+.link {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--mantine-radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--mantine-color-gray-6);
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.link:hover {
+  background-color: var(--mantine-color-blue-0);
+  color: var(--mantine-color-blue-6);
+}
+
+.link[data-active] {
+  background-color: var(--mantine-color-blue-1);
+  color: var(--mantine-color-blue-7);
+}
