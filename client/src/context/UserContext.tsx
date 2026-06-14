@@ -36,6 +36,7 @@ const UserContext = createContext<UserContextType | null>(null);
 export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserProfile>(defaultUser);
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    if (import.meta.env.VITE_DEMO_MODE === 'true') return true;
     return !!localStorage.getItem('cr-auth');
   });
 
