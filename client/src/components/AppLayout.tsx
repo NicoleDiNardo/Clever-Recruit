@@ -31,14 +31,12 @@ export function AppLayout() {
               <Burger opened={mobileOpened} onClick={toggleMobile} color="white" size="sm" />
             )}
             <Group gap="xs">
-              <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-                <circle cx="14" cy="14" r="12" stroke="white" strokeWidth="2" />
-                <circle cx="14" cy="10" r="4" fill="white" />
-                <path d="M7 22c0-3.866 3.134-7 7-7s7 3.134 7 7" stroke="white" strokeWidth="2" strokeLinecap="round" />
-              </svg>
-              <Text fw={700} size="lg" c="white">
-                Clever Recruit
-              </Text>
+              <img
+                src="/logo.svg"
+                alt="Clever Recruit"
+                height={36}
+                style={{ filter: 'brightness(0) invert(1)' }}
+              />
             </Group>
           </Group>
           <Group gap="sm">
