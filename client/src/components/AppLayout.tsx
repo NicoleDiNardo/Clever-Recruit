@@ -32,11 +32,13 @@ export function AppLayout() {
             )}
             <Group gap="xs">
               <img
-                src="/logo.svg"
+                src="/logo-mark.png"
                 alt="Clever Recruit"
-                height={36}
-                style={{ filter: 'brightness(0) invert(1)' }}
+                height={32}
               />
+              <Text fw={700} size="lg" c="white">
+                Clever Recruit
+              </Text>
             </Group>
           </Group>
           <Group gap="sm">

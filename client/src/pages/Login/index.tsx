@@ -55,7 +55,12 @@ export function Login() {
         maw={440}
       >
         <Center mb="xl">
-          <img src="/logo.svg" alt="Clever Recruit" height={48} />
+          <Group gap="xs">
+            <img src="/logo-mark.png" alt="Clever Recruit" height={40} />
+            <Text fw={700} size="xl" c="blue.7">
+              Clever Recruit
+            </Text>
+          </Group>
         </Center>
 
         <Title order={2} ta="center" mb={4}>
