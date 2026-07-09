@@ -1,0 +1,8 @@
+export function isEmbedMode() {
+  if (typeof window === 'undefined') return false;
+  return new URLSearchParams(window.location.search).get('embed') === '1';
+}
+
+export function useEmbedMode() {
+  return isEmbedMode();
+}

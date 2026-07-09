@@ -30,6 +30,7 @@ import {
 } from '@tabler/icons-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
+import { useEmbedMode } from '../hooks/useEmbedMode';
 
 const mainNavItems = [
   { icon: IconDashboard, label: 'Dashboard', path: '/dashboard' },
@@ -72,6 +73,7 @@ export function AppLayout() {
   const theme = useMantineTheme();
   const { colorScheme, toggleColorScheme } = useMantineColorScheme();
   const isMobile = useMediaQuery('(max-width: 768px)');
+  const isEmbed = useEmbedMode();
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useUser();
@@ -103,13 +105,13 @@ export function AppLayout() {
 
   return (
     <AppShell
-      header={{ height: 60 }}
+      header={{ height: isEmbed ? 52 : 60 }}
       navbar={{
-        width: { sm: 70, base: 250 },
+        width: { sm: 70, base: isEmbed ? 220 : 250 },
         breakpoint: 'sm',
         collapsed: { mobile: !mobileOpened },
       }}
-      padding="md"
+      padding={isEmbed ? 'xs' : 'md'}
     >
       <AppShell.Header
         style={{
@@ -117,26 +119,29 @@ export function AppLayout() {
           borderBottom: 'none',
         }}
       >
-        <Group h="100%" px="md" justify="space-between">
-          <Group>
+        <Group h="100%" px={isEmbed ? 'xs' : 'md'} justify="space-between" wrap="nowrap">
+          <Group gap="xs" wrap="nowrap" style={{ minWidth: 0 }}>
             {isMobile && (
               <Burger opened={mobileOpened} onClick={toggleMobile} color="white" size="sm" />
             )}
-            <Group gap="xs">
+            <Group gap="xs" wrap="nowrap" style={{ minWidth: 0 }}>
               <img
                 src="/logo-mark.svg"
                 alt="Clever Recruit"
-                height={32}
+                height={isEmbed ? 28 : 32}
               />
-              <Text fw={700} size="lg" c="white">
-                Clever Recruit
-              </Text>
+              {!isMobile && (
+                <Text fw={700} size="lg" c="white">
+                  Clever Recruit
+                </Text>
+              )}
             </Group>
           </Group>
-          <Group gap="sm">
-            <ActionIcon variant="subtle" color="white" size="lg" onClick={openSearch}>
-              <IconSearch size={20} />
+          <Group gap={isEmbed ? 4 : 'sm'} wrap="nowrap">
+            <ActionIcon variant="subtle" color="white" size={isEmbed ? 'md' : 'lg'} onClick={openSearch}>
+              <IconSearch size={isEmbed ? 18 : 20} />
             </ActionIcon>
+            {!isEmbed && (
             <Popover opened={notifOpened} onChange={setNotifOpened.toggle} position="bottom-end" width={360} shadow="lg">
               <Popover.Target>
                 <Indicator color="red" size={8} offset={4} processing disabled={unreadCount === 0}>
@@ -191,9 +196,11 @@ export function AppLayout() {
                 </ScrollArea.Autosize>
               </Popover.Dropdown>
             </Popover>
-            <ActionIcon variant="subtle" color="white" size="lg" onClick={() => toggleColorScheme()}>
-              {colorScheme === 'dark' ? <IconSun size={20} /> : <IconMoonStars size={20} />}
+            )}
+            <ActionIcon variant="subtle" color="white" size={isEmbed ? 'md' : 'lg'} onClick={() => toggleColorScheme()}>
+              {colorScheme === 'dark' ? <IconSun size={isEmbed ? 18 : 20} /> : <IconMoonStars size={isEmbed ? 18 : 20} />}
             </ActionIcon>
+            {!isEmbed && (
             <Menu shadow="md" width={200} position="bottom-end">
               <Menu.Target>
                 <Avatar
@@ -221,6 +228,7 @@ export function AppLayout() {
                 </Menu.Item>
               </Menu.Dropdown>
             </Menu>
+            )}
           </Group>
         </Group>
       </AppShell.Header>

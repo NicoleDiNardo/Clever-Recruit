@@ -10,19 +10,27 @@ import { Reports } from './pages/Reports';
 import { Settings } from './pages/Settings';
 import { Login } from './pages/Login';
 import { useUser } from './context/UserContext';
+import { isEmbedMode } from './hooks/useEmbedMode';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useUser();
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to={isEmbedMode() ? '/dashboard' : '/login'} replace />;
   }
   return <>{children}</>;
+}
+
+function LoginRoute() {
+  if (isEmbedMode()) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  return <Login />;
 }
 
 export function App() {
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
+      <Route path="/login" element={<LoginRoute />} />
       <Route
         element={
           <ProtectedRoute>

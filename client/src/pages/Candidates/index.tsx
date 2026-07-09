@@ -37,6 +37,7 @@ import { CandidateDetail } from './CandidateDetail';
 import { CreateCandidateForm } from './CreateCandidateForm';
 import { mockCandidates as initialCandidates } from '../../data/mockData';
 import type { Candidate } from '../../types';
+import { useEmbedMode } from '../../hooks/useEmbedMode';
 
 export function Candidates() {
   const [candidates, setCandidates] = useState<Candidate[]>(initialCandidates);
@@ -56,6 +57,7 @@ export function Candidates() {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [page, setPage] = useState(1);
   const isMobile = useMediaQuery('(max-width: 768px)');
+  const isEmbed = useEmbedMode();
 
   const filteredCandidates = candidates.filter((c) => {
     const matchesSearch =
@@ -257,7 +259,7 @@ export function Candidates() {
           leftSection={<IconSearch size={16} />}
           value={search}
           onChange={(e) => setSearch(e.currentTarget.value)}
-          style={{ minWidth: 250 }}
+          style={{ minWidth: isEmbed ? 0 : 250, flex: isEmbed ? 1 : undefined, width: isEmbed ? '100%' : undefined }}
         />
         <Group gap="md">
           <Switch

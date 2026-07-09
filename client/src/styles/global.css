@@ -12,3 +12,27 @@ body {
 #root {
   min-height: 100vh;
 }
+
+html.embed-mode,
+html.embed-mode body,
+html.embed-mode #root {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+html.embed-mode .mantine-AppShell-main {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+html.embed-mode .mantine-Table-table {
+  min-width: 640px;
+}
+
+html.embed-mode .mantine-AppShell-header {
+  padding-inline: 8px;
+}
+
+html.embed-mode .mantine-AppShell-navbar {
+  max-width: 100%;
+}

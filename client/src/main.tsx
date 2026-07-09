@@ -7,10 +7,15 @@ import { BrowserRouter } from 'react-router-dom';
 import { App } from './App';
 import { theme } from './theme';
 import { UserProvider } from './context/UserContext';
+import { isEmbedMode } from './hooks/useEmbedMode';
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
 import '@mantine/dates/styles.css';
 import './styles/global.css';
+
+if (isEmbedMode()) {
+  document.documentElement.classList.add('embed-mode');
+}
 
 const queryClient = new QueryClient({
   defaultOptions: {

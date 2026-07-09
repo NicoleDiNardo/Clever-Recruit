@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
+import { isEmbedMode } from '../hooks/useEmbedMode';
 
 interface UserProfile {
   firstName: string;
@@ -37,6 +38,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserProfile>(defaultUser);
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     if (import.meta.env.VITE_DEMO_MODE === 'true') return true;
+    if (isEmbedMode()) return true;
     return !!localStorage.getItem('cr-auth');
   });
 
