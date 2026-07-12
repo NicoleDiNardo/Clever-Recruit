@@ -35,10 +35,10 @@ import {
 } from '@tabler/icons-react';
 import { CandidateDetail } from './CandidateDetail';
 import { CreateCandidateForm } from './CreateCandidateForm';
-import { mockCandidates as initialCandidates } from '../../data/mockData';
 import type { Candidate } from '../../types';
 import { useEmbedMode } from '../../hooks/useEmbedMode';
 import { useSearchParams } from 'react-router-dom';
+import { useCandidates } from '../../context/CandidatesContext';
 
 const PIPELINE_STAGES = [
   { value: 'applied', label: 'Applied' },
@@ -53,7 +53,7 @@ const PIPELINE_STAGES = [
 export function Candidates() {
   const [searchParams, setSearchParams] = useSearchParams();
   const stageFromUrl = searchParams.get('stage');
-  const [candidates, setCandidates] = useState<Candidate[]>(initialCandidates);
+  const { candidates, setCandidates, updateCandidate, addCandidate, removeCandidate } = useCandidates();
   const [search, setSearch] = useState('');
   const [ownOnly, setOwnOnly] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string | null>(null);
@@ -134,10 +134,8 @@ export function Candidates() {
 
   const handleStageChange = (stage: string) => {
     if (!selectedCandidate) return;
+    updateCandidate(selectedCandidate.id, { stage });
     const updated = { ...selectedCandidate, stage, updatedAt: new Date().toISOString() };
-    setCandidates((prev) =>
-      prev.map((c) => (c.id === selectedCandidate.id ? updated : c))
-    );
     setSelectedCandidate(updated);
     notifications.show({
       title: 'Stage updated',
@@ -172,7 +170,7 @@ export function Candidates() {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
-    setCandidates((prev) => [newCandidate, ...prev]);
+    addCandidate(newCandidate);
     closeCreate();
     notifications.show({
       title: 'Candidate Created',
@@ -184,27 +182,19 @@ export function Candidates() {
 
   const handleEditCandidate = (values: Record<string, unknown>) => {
     if (!candidateToEdit) return;
-    setCandidates((prev) =>
-      prev.map((c) =>
-        c.id === candidateToEdit.id
-          ? {
-              ...c,
-              firstName: values.firstName as string,
-              lastName: values.lastName as string,
-              email: values.email as string,
-              phone: (values.phone as string) || c.phone,
-              jobTitle: (values.jobTitle as string) || c.jobTitle,
-              score: (values.score as number) || c.score,
-              status: (values.status as string) || c.status,
-              location: (values.location as string) || c.location,
-              currentPosition: (values.currentPosition as string) || c.currentPosition,
-              currentOrganization: (values.currentOrganization as string) || c.currentOrganization,
-              employmentStatus: (values.employmentStatus as string) || c.employmentStatus,
-              updatedAt: new Date().toISOString(),
-            }
-          : c
-      )
-    );
+    updateCandidate(candidateToEdit.id, {
+      firstName: values.firstName as string,
+      lastName: values.lastName as string,
+      email: values.email as string,
+      phone: (values.phone as string) || candidateToEdit.phone,
+      jobTitle: (values.jobTitle as string) || candidateToEdit.jobTitle,
+      score: (values.score as number) || candidateToEdit.score,
+      status: (values.status as string) || candidateToEdit.status,
+      location: (values.location as string) || candidateToEdit.location,
+      currentPosition: (values.currentPosition as string) || candidateToEdit.currentPosition,
+      currentOrganization: (values.currentOrganization as string) || candidateToEdit.currentOrganization,
+      employmentStatus: (values.employmentStatus as string) || candidateToEdit.employmentStatus,
+    });
     closeEditModal();
     notifications.show({
       title: 'Candidate Updated',
@@ -216,7 +206,7 @@ export function Candidates() {
 
   const handleDelete = () => {
     if (!candidateToDelete) return;
-    setCandidates((prev) => prev.filter((c) => c.id !== candidateToDelete.id));
+    removeCandidate(candidateToDelete.id);
     closeDelete();
     closeDetail();
     notifications.show({

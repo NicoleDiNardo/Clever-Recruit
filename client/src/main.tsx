@@ -7,6 +7,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { App } from './App';
 import { theme } from './theme';
 import { UserProvider } from './context/UserContext';
+import { CandidatesProvider } from './context/CandidatesContext';
 import { isEmbedMode } from './hooks/useEmbedMode';
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
@@ -33,7 +34,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <Notifications position="top-right" />
         <BrowserRouter>
           <UserProvider>
-            <App />
+            <CandidatesProvider>
+              <App />
+            </CandidatesProvider>
           </UserProvider>
         </BrowserRouter>
       </MantineProvider>

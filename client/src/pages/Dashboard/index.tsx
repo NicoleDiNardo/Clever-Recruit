@@ -22,6 +22,8 @@ import {
   IconArrowDownRight,
 } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
+import { useCandidates } from '../../context/CandidatesContext';
+import { mockJobs } from '../../data/mockData';
 
 interface StatCardProps {
   title: string;
@@ -66,13 +68,13 @@ function StatCard({ title, value, icon, color, change, onClick }: StatCardProps)
   );
 }
 
-const pipelineStages = [
-  { stage: 'Applied', key: 'applied', count: 245, color: 'blue' },
-  { stage: 'Screening', key: 'screening', count: 128, color: 'cyan' },
-  { stage: 'Interview', key: 'interview', count: 86, color: 'teal' },
-  { stage: 'Assessment', key: 'assessment', count: 42, color: 'yellow' },
-  { stage: 'Offer', key: 'offer', count: 18, color: 'orange' },
-  { stage: 'Hired', key: 'hired', count: 12, color: 'green' },
+const pipelineStageKeys = [
+  { stage: 'Applied', key: 'applied', color: 'blue' },
+  { stage: 'Screening', key: 'screening', color: 'cyan' },
+  { stage: 'Interview', key: 'interview', color: 'teal' },
+  { stage: 'Assessment', key: 'assessment', color: 'yellow' },
+  { stage: 'Offer', key: 'offer', color: 'orange' },
+  { stage: 'Hired', key: 'hired', color: 'green' },
 ];
 
 const recentActivity = [
@@ -120,7 +122,16 @@ const recentActivity = [
 
 export function Dashboard() {
   const navigate = useNavigate();
+  const { candidates, stageCounts } = useCandidates();
+
+  const pipelineStages = pipelineStageKeys.map((s) => ({
+    ...s,
+    count: stageCounts[s.key] ?? 0,
+  }));
   const totalPipeline = pipelineStages.reduce((sum, s) => sum + s.count, 0);
+  const interviewCount = stageCounts.interview ?? 0;
+  const hiredCount = stageCounts.hired ?? 0;
+  const activeJobs = mockJobs.filter((j) => j.status === 'open' || j.status === 'active').length;
 
   return (
     <Box>
@@ -134,7 +145,7 @@ export function Dashboard() {
       <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} mb="xl">
         <StatCard
           title="Total Candidates"
-          value="17,952"
+          value={candidates.length.toLocaleString()}
           icon={<IconUsers size={24} />}
           color="blue"
           change={12}
@@ -142,7 +153,7 @@ export function Dashboard() {
         />
         <StatCard
           title="Active Jobs"
-          value="24"
+          value={String(activeJobs || mockJobs.length)}
           icon={<IconBriefcase size={24} />}
           color="teal"
           change={8}
@@ -150,7 +161,7 @@ export function Dashboard() {
         />
         <StatCard
           title="Interviews This Week"
-          value="18"
+          value={String(interviewCount)}
           icon={<IconCalendarEvent size={24} />}
           color="yellow"
           change={-5}
@@ -158,7 +169,7 @@ export function Dashboard() {
         />
         <StatCard
           title="Placements This Month"
-          value="7"
+          value={String(hiredCount)}
           icon={<IconUserCheck size={24} />}
           color="green"
           change={23}

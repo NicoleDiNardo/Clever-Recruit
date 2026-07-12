@@ -14,6 +14,7 @@ import {
   Center,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
+import { notifications } from '@mantine/notifications';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { useUser } from '../../context/UserContext';
 
@@ -41,6 +42,16 @@ export function Login() {
     login(values.email, values.password);
     navigate('/dashboard');
   });
+
+  const handleSso = (provider: string) => {
+    login(`jenny@cleverrecruit.com`, 'demo');
+    notifications.show({
+      title: 'Signed in',
+      message: `Demo sign-in via ${provider} complete.`,
+      color: 'blue',
+    });
+    navigate('/dashboard');
+  };
 
   return (
     <Box
@@ -109,10 +120,10 @@ export function Login() {
         <Divider label="Or continue with" labelPosition="center" my="lg" />
 
         <Group grow>
-          <Button variant="light" color="gray">
+          <Button variant="light" color="gray" onClick={() => handleSso('Google')}>
             Google
           </Button>
-          <Button variant="light" color="gray">
+          <Button variant="light" color="gray" onClick={() => handleSso('Microsoft')}>
             Microsoft
           </Button>
         </Group>
