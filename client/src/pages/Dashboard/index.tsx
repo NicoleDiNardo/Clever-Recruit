@@ -67,12 +67,12 @@ function StatCard({ title, value, icon, color, change, onClick }: StatCardProps)
 }
 
 const pipelineStages = [
-  { stage: 'Applied', count: 245, color: 'blue' },
-  { stage: 'Screening', count: 128, color: 'cyan' },
-  { stage: 'Interview', count: 86, color: 'teal' },
-  { stage: 'Assessment', count: 42, color: 'yellow' },
-  { stage: 'Offer', count: 18, color: 'orange' },
-  { stage: 'Hired', count: 12, color: 'green' },
+  { stage: 'Applied', key: 'applied', count: 245, color: 'blue' },
+  { stage: 'Screening', key: 'screening', count: 128, color: 'cyan' },
+  { stage: 'Interview', key: 'interview', count: 86, color: 'teal' },
+  { stage: 'Assessment', key: 'assessment', count: 42, color: 'yellow' },
+  { stage: 'Offer', key: 'offer', count: 18, color: 'orange' },
+  { stage: 'Hired', key: 'hired', count: 12, color: 'green' },
 ];
 
 const recentActivity = [
@@ -174,7 +174,20 @@ export function Dashboard() {
             </Title>
             <Stack gap="sm">
               {pipelineStages.map((stage) => (
-                <div key={stage.stage}>
+                <button
+                  key={stage.stage}
+                  type="button"
+                  onClick={() => navigate(`/candidates?stage=${stage.key}`)}
+                  style={{
+                    all: 'unset',
+                    cursor: 'pointer',
+                    display: 'block',
+                    width: '100%',
+                    borderRadius: 'var(--mantine-radius-md)',
+                    padding: '4px 6px',
+                    margin: '-4px -6px',
+                  }}
+                >
                   <Group justify="space-between" mb={4}>
                     <Text size="sm" fw={500}>
                       {stage.stage}
@@ -194,7 +207,7 @@ export function Dashboard() {
                     size="lg"
                     radius="xl"
                   />
-                </div>
+                </button>
               ))}
             </Stack>
 

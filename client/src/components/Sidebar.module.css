@@ -1,5 +1,6 @@
 .navbar {
   height: 100%;
+  width: 168px;
   display: flex;
   flex-direction: column;
   background-color: var(--mantine-color-body);
@@ -7,14 +8,19 @@
 }
 
 .link {
-  width: 44px;
-  height: 44px;
+  width: 100%;
+  min-height: 40px;
+  padding: 0 10px;
   border-radius: var(--mantine-radius-md);
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 10px;
   color: var(--mantine-color-gray-6);
   transition: background-color 150ms ease, color 150ms ease;
+}
+
+.label {
+  white-space: nowrap;
 }
 
 .link:hover {

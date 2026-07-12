@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Title,
   Text,
@@ -38,12 +38,26 @@ import { CreateCandidateForm } from './CreateCandidateForm';
 import { mockCandidates as initialCandidates } from '../../data/mockData';
 import type { Candidate } from '../../types';
 import { useEmbedMode } from '../../hooks/useEmbedMode';
+import { useSearchParams } from 'react-router-dom';
+
+const PIPELINE_STAGES = [
+  { value: 'applied', label: 'Applied' },
+  { value: 'screening', label: 'Screening' },
+  { value: 'interview', label: 'Interview' },
+  { value: 'assessment', label: 'Assessment' },
+  { value: 'offer', label: 'Offer' },
+  { value: 'hired', label: 'Hired' },
+  { value: 'rejected', label: 'Rejected' },
+];
 
 export function Candidates() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const stageFromUrl = searchParams.get('stage');
   const [candidates, setCandidates] = useState<Candidate[]>(initialCandidates);
   const [search, setSearch] = useState('');
   const [ownOnly, setOwnOnly] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string | null>(null);
+  const [filterStage, setFilterStage] = useState<string | null>(stageFromUrl);
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [detailOpened, { open: openDetail, close: closeDetail }] = useDisclosure(false);
@@ -59,6 +73,10 @@ export function Candidates() {
   const isMobile = useMediaQuery('(max-width: 768px)');
   const isEmbed = useEmbedMode();
 
+  useEffect(() => {
+    setFilterStage(stageFromUrl);
+  }, [stageFromUrl]);
+
   const filteredCandidates = candidates.filter((c) => {
     const matchesSearch =
       !search ||
@@ -67,7 +85,8 @@ export function Candidates() {
       (c.jobTitle && c.jobTitle.toLowerCase().includes(search.toLowerCase()));
     const matchesOwner = !ownOnly || c.ownerId === '1';
     const matchesStatus = !filterStatus || c.status === filterStatus;
-    return matchesSearch && matchesOwner && matchesStatus;
+    const matchesStage = !filterStage || c.stage === filterStage;
+    return matchesSearch && matchesOwner && matchesStatus && matchesStage;
   });
 
   const sortedCandidates = [...filteredCandidates].sort((a, b) => {
@@ -111,6 +130,26 @@ export function Candidates() {
       setSelectedIndex(newIndex);
       setSelectedCandidate(sortedCandidates[newIndex]);
     }
+  };
+
+  const handleStageChange = (stage: string) => {
+    if (!selectedCandidate) return;
+    const updated = { ...selectedCandidate, stage, updatedAt: new Date().toISOString() };
+    setCandidates((prev) =>
+      prev.map((c) => (c.id === selectedCandidate.id ? updated : c))
+    );
+    setSelectedCandidate(updated);
+    notifications.show({
+      title: 'Stage updated',
+      message: `${updated.firstName} ${updated.lastName} moved to ${PIPELINE_STAGES.find((s) => s.value === stage)?.label ?? stage}.`,
+      color: 'blue',
+      icon: <IconCheck size={16} />,
+    });
+  };
+
+  const clearStageFilter = () => {
+    setFilterStage(null);
+    setSearchParams({});
   };
 
   const handleCreateCandidate = (values: Record<string, unknown>) => {
@@ -241,6 +280,16 @@ export function Candidates() {
           <Text c="dimmed" size="sm" mt={4}>
             Manage your candidates and their applications.
           </Text>
+          {filterStage && (
+            <Group gap="xs" mt="xs">
+              <Badge variant="light" color="blue">
+                Stage: {PIPELINE_STAGES.find((s) => s.value === filterStage)?.label ?? filterStage}
+              </Badge>
+              <Button variant="subtle" size="compact-xs" onClick={clearStageFilter}>
+                Clear filter
+              </Button>
+            </Group>
+          )}
         </div>
         <Button leftSection={<IconPlus size={16} />} onClick={openCreate}>
           Create new candidate
@@ -472,6 +521,7 @@ export function Candidates() {
               setCandidateToDelete(selectedCandidate);
               openDelete();
             }}
+            onStageChange={handleStageChange}
           />
         )}
       </Drawer>

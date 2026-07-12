@@ -12,6 +12,7 @@ import {
   Box,
   Flex,
   Button,
+  Select,
 } from '@mantine/core';
 import {
   IconChevronLeft,
@@ -34,7 +35,18 @@ interface CandidateDetailProps {
   onClose: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
+  onStageChange?: (stage: string) => void;
 }
+
+const STAGE_OPTIONS = [
+  { value: 'applied', label: 'Applied' },
+  { value: 'screening', label: 'Screening' },
+  { value: 'interview', label: 'Interview' },
+  { value: 'assessment', label: 'Assessment' },
+  { value: 'offer', label: 'Offer' },
+  { value: 'hired', label: 'Hired' },
+  { value: 'rejected', label: 'Rejected' },
+];
 
 export function CandidateDetail({
   candidate,
@@ -45,6 +57,7 @@ export function CandidateDetail({
   onClose,
   onEdit,
   onDelete,
+  onStageChange,
 }: CandidateDetailProps) {
   const getJobTitleColor = (title?: string) => {
     if (!title) return 'gray';
@@ -154,14 +167,31 @@ export function CandidateDetail({
       </Box>
 
       <Box>
+        <Text size="xs" fw={600} c="dimmed" mb={6}>
+          Pipeline stage
+        </Text>
+        <Select
+          data={STAGE_OPTIONS}
+          value={candidate.stage ?? 'applied'}
+          onChange={(value) => value && onStageChange?.(value)}
+          allowDeselect={false}
+        />
+      </Box>
+
+      <Divider />
+
+      <Box>
         <Text size="xs" fw={600} c="dimmed">
           Owner
         </Text>
         <Group gap="xs" mt={4}>
           <Avatar size="xs" radius="xl" color="blue">
-            JC
+            {candidate.owner?.firstName?.[0] ?? 'J'}
+            {candidate.owner?.lastName?.[0] ?? 'C'}
           </Avatar>
-          <Text size="sm">jenny@cleverrecruit.com</Text>
+          <Text size="sm">
+            {candidate.owner?.email ?? 'jenny@cleverrecruit.com'}
+          </Text>
         </Group>
       </Box>
 
