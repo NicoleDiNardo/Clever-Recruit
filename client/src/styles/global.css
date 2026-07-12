@@ -13,26 +13,66 @@ body {
   min-height: 100vh;
 }
 
+/* Portfolio iframe embed (?embed=1) */
 html.embed-mode,
 html.embed-mode body,
 html.embed-mode #root {
-  overflow-x: hidden;
+  width: 100%;
   max-width: 100%;
+  overflow-x: clip;
+  min-height: 0;
+}
+
+html.embed-mode .mantine-AppShell-root {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
 }
 
 html.embed-mode .mantine-AppShell-main {
-  overflow-x: auto;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
+  overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  padding: 8px !important;
+}
+
+html.embed-mode .mantine-AppShell-header {
+  padding-inline: 8px;
+  width: 100%;
+  max-width: 100%;
+}
+
+html.embed-mode .mantine-AppShell-navbar {
+  max-width: 100%;
 }
 
 html.embed-mode .mantine-Table-table {
   min-width: 640px;
 }
 
-html.embed-mode .mantine-AppShell-header {
-  padding-inline: 8px;
+/* Compact embed uses card list — no wide table */
+html.embed-mode .embed-candidate-cards ~ .mantine-Table-root,
+html.embed-mode .embed-candidate-cards {
+  min-width: 0;
 }
 
-html.embed-mode .mantine-AppShell-navbar {
+html.embed-mode .embed-candidate-card {
+  width: 100%;
+  max-width: 100%;
+}
+
+html.embed-mode .mantine-Drawer-content {
+  max-width: 100%;
+}
+
+html.embed-mode .mantine-Pagination-root {
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+html.embed-mode .mantine-Modal-content,
+html.embed-mode .mantine-Paper-root {
   max-width: 100%;
 }

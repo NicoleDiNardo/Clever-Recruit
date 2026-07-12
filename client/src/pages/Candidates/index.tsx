@@ -18,6 +18,7 @@ import {
   Menu,
   Modal,
   Select,
+  Paper,
 } from '@mantine/core';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
@@ -72,6 +73,7 @@ export function Candidates() {
   const [page, setPage] = useState(1);
   const isMobile = useMediaQuery('(max-width: 768px)');
   const isEmbed = useEmbedMode();
+  const showCompactList = isEmbed || isMobile;
 
   useEffect(() => {
     setFilterStage(stageFromUrl);
@@ -281,8 +283,8 @@ export function Candidates() {
             </Group>
           )}
         </div>
-        <Button leftSection={<IconPlus size={16} />} onClick={openCreate}>
-          Create new candidate
+        <Button leftSection={<IconPlus size={16} />} onClick={openCreate} size={showCompactList ? 'sm' : 'md'}>
+          {showCompactList ? 'Add' : 'Create new candidate'}
         </Button>
       </Flex>
 
@@ -300,14 +302,16 @@ export function Candidates() {
           onChange={(e) => setSearch(e.currentTarget.value)}
           style={{ minWidth: isEmbed ? 0 : 250, flex: isEmbed ? 1 : undefined, width: isEmbed ? '100%' : undefined }}
         />
-        <Group gap="md">
+        <Group gap="md" wrap="wrap">
+          {!showCompactList && (
           <Switch
             label="Show only my candidates"
             checked={ownOnly}
             onChange={(e) => setOwnOnly(e.currentTarget.checked)}
             color="teal"
           />
-          <Button variant="light" leftSection={<IconFilter size={16} />} onClick={openFilter}>
+          )}
+          <Button variant="light" leftSection={<IconFilter size={16} />} onClick={openFilter} size={showCompactList ? 'sm' : 'md'}>
             {filterStatus ? `Filter: ${filterStatus}` : 'Open filters'}
           </Button>
           {filterStatus && (
@@ -318,6 +322,60 @@ export function Candidates() {
         </Group>
       </Flex>
 
+      {showCompactList ? (
+        <Stack gap="sm" className="embed-candidate-cards">
+          {paginatedCandidates.map((candidate, index) => (
+            <Paper
+              key={candidate.id}
+              withBorder
+              radius="md"
+              p="sm"
+              className="embed-candidate-card"
+              style={{ cursor: 'pointer' }}
+              onClick={() => handleSelectCandidate(candidate, (page - 1) * pageSize + index)}
+            >
+              <Group justify="space-between" align="flex-start" wrap="nowrap" gap="sm">
+                <Group gap="sm" wrap="nowrap" style={{ minWidth: 0, flex: 1 }}>
+                  <Avatar src={candidate.avatar} radius="xl" size="md">
+                    {candidate.firstName[0]}
+                    {candidate.lastName[0]}
+                  </Avatar>
+                  <Box style={{ minWidth: 0 }}>
+                    <Text fw={600} size="sm" truncate>
+                      {candidate.firstName} {candidate.lastName}
+                    </Text>
+                    {candidate.jobTitle && (
+                      <Text size="xs" c="dimmed" truncate>
+                        {candidate.jobTitle}
+                      </Text>
+                    )}
+                  </Box>
+                </Group>
+                <Stack gap={4} align="flex-end" style={{ flexShrink: 0 }}>
+                  <Badge variant="light" color={getStatusColor(candidate.status)} size="sm">
+                    {candidate.status}
+                  </Badge>
+                  {candidate.score != null && (
+                    <Text size="xs" c="dimmed">
+                      {candidate.score}/100
+                    </Text>
+                  )}
+                </Stack>
+              </Group>
+              {candidate.stage && (
+                <Badge
+                  variant="outline"
+                  color={getStageColor(candidate.stage)}
+                  size="xs"
+                  mt="xs"
+                >
+                  {candidate.stage}
+                </Badge>
+              )}
+            </Paper>
+          ))}
+        </Stack>
+      ) : (
       <Box style={{ overflowX: 'auto' }}>
         <Table striped highlightOnHover verticalSpacing="sm">
           <Table.Thead>
@@ -478,6 +536,7 @@ export function Candidates() {
           </Table.Tbody>
         </Table>
       </Box>
+      )}
 
       {totalPages > 1 && (
         <Flex justify="center" mt="lg">
