@@ -36,6 +36,10 @@ html.embed-mode .mantine-AppShell-main {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   padding: 8px !important;
+  /* The shorthand above wiped out AppShell's own header-clearance padding-top,
+     leaving the fixed header overlapping the first ~52px of page content.
+     Re-apply padding-top using the same CSS variable Mantine sets. */
+  padding-top: calc(var(--app-shell-header-offset, 0rem) + 8px) !important;
 }
 
 html.embed-mode .mantine-AppShell-header {
