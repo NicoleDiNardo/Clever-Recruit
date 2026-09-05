@@ -107,7 +107,16 @@ export function AppLayout() {
     <AppShell
       header={{ height: isEmbed ? 52 : 60 }}
       navbar={{
-        width: { sm: 70, base: isEmbed ? 220 : 250 },
+        width: { sm: 168, base: isEmbed ? 220 : 250 },
+        // Sidebar.module.css hardcodes the non-mobile sidebar to 168px
+        // (.navbar { width: 168px }), independent of this AppShell config.
+        // This was previously 70, which is icon-rail width — but Sidebar
+        // always renders full icon+label rows, so its real 168px content
+        // overflowed the 70px box Mantine reserved for it, and the main
+        // content area (padding-left: var(--app-shell-navbar-offset))
+        // only cleared 70px, leaving ~98px of sidebar sitting on top of
+        // the page content at desktop widths. Matching this to 168 makes
+        // AppShell reserve the sidebar's actual width.
         breakpoint: 'sm',
         collapsed: { mobile: !mobileOpened },
       }}
