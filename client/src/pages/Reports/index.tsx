@@ -124,7 +124,7 @@ export function Reports() {
     <Box>
       <Group justify="space-between" align="flex-start" mb="md">
         <div>
-          <Title order={2} c="blue.7">
+          <Title order={1} size="h2" c="blue.7">
             Reports & Analytics
           </Title>
           <Text c="dimmed" size="sm" mt={4}>

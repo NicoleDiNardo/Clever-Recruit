@@ -146,7 +146,7 @@ export function Dashboard() {
 
   return (
     <Box>
-      <Title order={2} c="blue.7" mb={4}>
+      <Title order={1} size="h2" c="blue.7" mb={4}>
         Dashboard
       </Title>
       <Text c="dimmed" size="sm" mb="lg">

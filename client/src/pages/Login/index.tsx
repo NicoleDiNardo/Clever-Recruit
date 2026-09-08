@@ -80,7 +80,7 @@ export function Login() {
           </Group>
         </Center>
 
-        <Title order={2} ta="center" mb={4}>
+        <Title order={1} size="h2" ta="center" mb={4}>
           Welcome back
         </Title>
         <Text c="dimmed" size="sm" ta="center" mb="xl">

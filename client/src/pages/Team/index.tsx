@@ -147,7 +147,7 @@ export function Team() {
   return (
     <Box>
       <Group gap="sm" align="baseline" mb={4}>
-        <Title order={2} c="blue.7">
+        <Title order={1} size="h2" c="blue.7">
           Team
         </Title>
         <Text c="dimmed" size="sm">

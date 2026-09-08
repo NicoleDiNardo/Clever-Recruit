@@ -259,7 +259,7 @@ export function Candidates() {
       <Flex justify="space-between" align="flex-start" mb="lg" wrap="wrap" gap="md">
         <div>
           <Group gap="sm" align="baseline">
-            <Title order={2} c="blue.7">
+            <Title order={1} size="h2" c="blue.7">
               Candidates
             </Title>
             <Text c="dimmed" size="sm">

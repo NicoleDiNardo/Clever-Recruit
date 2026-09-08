@@ -206,7 +206,7 @@ export function Calendar() {
     <Box>
       <Group justify="space-between" align="flex-start" mb="lg">
         <div>
-          <Title order={2} c="blue.7">
+          <Title order={1} size="h2" c="blue.7">
             Calendar
           </Title>
           <Text c="dimmed" size="sm" mt={4}>
