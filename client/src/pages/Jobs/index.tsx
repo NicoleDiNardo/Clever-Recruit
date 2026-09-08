@@ -7,6 +7,7 @@ import {
   TextInput,
   Badge,
   Table,
+  Avatar,
   Drawer,
   Stack,
   Box,
@@ -223,8 +224,8 @@ export function Jobs() {
         style={{ maxWidth: 400 }}
       />
 
-      <Box style={{ overflowX: 'auto' }}>
-        <Table striped highlightOnHover verticalSpacing="sm">
+      <Box style={{ overflowX: 'auto', maxWidth: '100%', minWidth: 0 }}>
+        <Table striped highlightOnHover verticalSpacing="sm" miw={880}>
           <Table.Thead>
             <Table.Tr>
               <Table.Th>Job Title</Table.Th>
@@ -248,30 +249,40 @@ export function Jobs() {
                 }}
               >
                 <Table.Td>
-                  <Text fw={500} size="sm">
+                  <Text fw={500} size="sm" style={{ whiteSpace: 'nowrap' }}>
                     {job.title}
                   </Text>
                 </Table.Td>
                 <Table.Td>
-                  <Group gap="xs">
-                    {job.company?.logo && (
-                      <img src={job.company.logo} alt={job.company.name} width={20} height={20} style={{ borderRadius: 4 }} />
-                    )}
-                    <Text size="sm">{job.company?.name}</Text>
+                  <Group gap="xs" wrap="nowrap">
+                    <Avatar
+                      src={job.company?.logo}
+                      alt=""
+                      size={20}
+                      radius={4}
+                      color="blue"
+                    >
+                      {(job.company?.name || '?').charAt(0)}
+                    </Avatar>
+                    <Text size="sm" style={{ whiteSpace: 'nowrap' }}>
+                      {job.company?.name}
+                    </Text>
                   </Group>
                 </Table.Td>
                 <Table.Td>
-                  <Text size="sm" c="dimmed">
+                  <Text size="sm" c="dimmed" style={{ whiteSpace: 'nowrap' }}>
                     {job.location}
                   </Text>
                 </Table.Td>
                 <Table.Td>
-                  <Badge variant="light" color="blue" size="sm">
+                  <Badge variant="light" color="blue" size="sm" style={{ maxWidth: 'none' }}>
                     {job.type}
                   </Badge>
                 </Table.Td>
                 <Table.Td>
-                  <Text size="sm">{job.salary}</Text>
+                  <Text size="sm" style={{ whiteSpace: 'nowrap' }}>
+                    {job.salary}
+                  </Text>
                 </Table.Td>
                 <Table.Td>
                   <Badge variant="light" color={getStatusColor(job.status)} size="sm">

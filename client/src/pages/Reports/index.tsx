@@ -71,9 +71,12 @@ interface MetricCardProps {
   icon: React.ReactNode;
   color: string;
   trend: number;
+  /** For metrics where a fall is an improvement (time to hire, cost per hire). */
+  lowerIsBetter?: boolean;
 }
 
-function MetricCard({ title, value, subtitle, icon, color, trend }: MetricCardProps) {
+function MetricCard({ title, value, subtitle, icon, color, trend, lowerIsBetter }: MetricCardProps) {
+  const good = lowerIsBetter ? trend < 0 : trend > 0;
   return (
     <Card withBorder padding="lg">
       <Group justify="space-between" mb="xs">
@@ -82,11 +85,11 @@ function MetricCard({ title, value, subtitle, icon, color, trend }: MetricCardPr
         </ThemeIcon>
         <Group gap={4}>
           {trend > 0 ? (
-            <IconTrendingUp size={16} color="var(--mantine-color-teal-6)" />
+            <IconTrendingUp size={16} color={`var(--mantine-color-${good ? 'teal' : 'red'}-6)`} />
           ) : (
-            <IconTrendingDown size={16} color="var(--mantine-color-red-6)" />
+            <IconTrendingDown size={16} color={`var(--mantine-color-${good ? 'teal' : 'red'}-6)`} />
           )}
-          <Text size="xs" c={trend > 0 ? 'teal' : 'red'} fw={600}>
+          <Text size="xs" c={good ? 'teal' : 'red'} fw={600}>
             {Math.abs(trend)}%
           </Text>
         </Group>
@@ -153,11 +156,12 @@ export function Reports() {
           icon={<IconClock size={20} />}
           color="blue"
           trend={-8}
+          lowerIsBetter
         />
         <MetricCard
           title="Offer Acceptance Rate"
-          value="87%"
-          subtitle="42 offers / 36 accepted"
+          value="86%"
+          subtitle="36 of 42 offers accepted"
           icon={<IconUserCheck size={20} />}
           color="teal"
           trend={5}
@@ -169,6 +173,7 @@ export function Reports() {
           icon={<IconTarget size={20} />}
           color="yellow"
           trend={-12}
+          lowerIsBetter
         />
         <MetricCard
           title="Open Positions"
