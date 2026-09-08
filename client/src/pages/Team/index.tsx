@@ -180,7 +180,7 @@ export function Team() {
           <Stack gap="md">
             <Group justify="space-between">
               <Title order={4}>Team Member</Title>
-              <ActionIcon variant="subtle" onClick={closeDrawer}>
+              <ActionIcon variant="subtle" onClick={closeDrawer} aria-label="Close team member details">
                 <IconX size={18} />
               </ActionIcon>
             </Group>

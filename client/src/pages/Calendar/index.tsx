@@ -223,11 +223,11 @@ export function Calendar() {
           <Card withBorder padding="lg" mb="lg">
             <Group justify="space-between" mb="md">
               <Group gap="xs">
-                <ActionIcon variant="subtle" onClick={handlePrevMonth}>
+                <ActionIcon variant="subtle" onClick={handlePrevMonth} aria-label="Previous month">
                   <IconChevronLeft size={18} />
                 </ActionIcon>
                 <Title order={4}>{monthName}</Title>
-                <ActionIcon variant="subtle" onClick={handleNextMonth}>
+                <ActionIcon variant="subtle" onClick={handleNextMonth} aria-label="Next month">
                   <IconChevronRight size={18} />
                 </ActionIcon>
               </Group>

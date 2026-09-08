@@ -13,7 +13,12 @@ import {
 import classes from './Sidebar.module.css';
 
 interface NavItemProps {
-  icon: React.FC<{ size?: number | string; stroke?: number }>;
+  /**
+   * Tabler's icons accept `stroke` as number | string; typing it as `number`
+   * here made every icon in the nav a type error the Vite build never
+   * surfaced, because vite build does not typecheck.
+   */
+  icon: React.ComponentType<{ size?: number | string; stroke?: number | string }>;
   label: string;
   path: string;
   active?: boolean;

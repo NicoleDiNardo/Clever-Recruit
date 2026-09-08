@@ -107,8 +107,8 @@ export function Candidates() {
 
   const sortedCandidates = [...filteredCandidates].sort((a, b) => {
     if (!sortBy) return 0;
-    const aVal = (a as Record<string, unknown>)[sortBy] ?? '';
-    const bVal = (b as Record<string, unknown>)[sortBy] ?? '';
+    const aVal = (a as unknown as Record<string, unknown>)[sortBy] ?? '';
+    const bVal = (b as unknown as Record<string, unknown>)[sortBy] ?? '';
     const cmp = String(aVal).localeCompare(String(bVal));
     return sortOrder === 'asc' ? cmp : -cmp;
   });
@@ -310,6 +310,8 @@ export function Candidates() {
         gap="sm"
       >
         <TextInput
+          aria-label="Search candidates"
+          type="search"
           placeholder="Search"
           leftSection={<IconSearch size={16} />}
           value={search}
@@ -333,7 +335,7 @@ export function Candidates() {
             {filterStatus ? `Filter: ${filterStatus}` : 'Open filters'}
           </Button>
           {filterStatus && (
-            <ActionIcon variant="subtle" color="red" onClick={() => setFilterStatus(null)} size="sm">
+            <ActionIcon variant="subtle" color="red" onClick={() => setFilterStatus(null)} size="sm" aria-label="Clear status filter">
               <IconX size={14} />
             </ActionIcon>
           )}
@@ -516,10 +518,14 @@ export function Candidates() {
                 </Table.Td>
                 <Table.Td>
                   <Group gap={4} onClick={(e) => e.stopPropagation()}>
+                    {/* Named per row: in a 221-row table, an unlabelled pencil
+                        tells a screen-reader user nothing about which candidate
+                        it edits. */}
                     <ActionIcon
                       variant="subtle"
                       color="gray"
                       size="sm"
+                      aria-label={`Edit ${candidate.firstName} ${candidate.lastName}`}
                       onClick={() => {
                         setCandidateToEdit(candidate);
                         openEditModal();
@@ -531,6 +537,7 @@ export function Candidates() {
                       variant="subtle"
                       color="red"
                       size="sm"
+                      aria-label={`Delete ${candidate.firstName} ${candidate.lastName}`}
                       onClick={() => {
                         setCandidateToDelete(candidate);
                         openDelete();
@@ -540,7 +547,12 @@ export function Candidates() {
                     </ActionIcon>
                     <Menu shadow="md" width={160}>
                       <Menu.Target>
-                        <ActionIcon variant="subtle" color="gray" size="sm">
+                        <ActionIcon
+                          variant="subtle"
+                          color="gray"
+                          size="sm"
+                          aria-label={`More actions for ${candidate.firstName} ${candidate.lastName}`}
+                        >
                           <IconDots size={16} />
                         </ActionIcon>
                       </Menu.Target>

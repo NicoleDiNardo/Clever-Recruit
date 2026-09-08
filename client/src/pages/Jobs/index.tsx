@@ -216,6 +216,8 @@ export function Jobs() {
       </Flex>
 
       <TextInput
+        aria-label="Search jobs"
+        type="search"
         placeholder="Search jobs..."
         leftSection={<IconSearch size={16} />}
         value={search}
@@ -300,6 +302,7 @@ export function Jobs() {
                       variant="subtle"
                       color="gray"
                       size="sm"
+                      aria-label={`Edit ${job.title}`}
                       onClick={() => handleOpenEdit(job)}
                     >
                       <IconEdit size={16} />
@@ -308,6 +311,7 @@ export function Jobs() {
                       variant="subtle"
                       color="red"
                       size="sm"
+                      aria-label={`Close ${job.title}`}
                       onClick={() => {
                         setJobToDelete(job);
                         openDelete();

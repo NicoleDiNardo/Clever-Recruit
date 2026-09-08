@@ -147,14 +147,14 @@ export function AppLayout() {
             </Group>
           </Group>
           <Group gap={isEmbed ? 4 : 'sm'} wrap="nowrap">
-            <ActionIcon variant="subtle" color="white" size={isEmbed ? 'md' : 'lg'} onClick={openSearch}>
+            <ActionIcon variant="subtle" color="white" size={isEmbed ? 'md' : 'lg'} onClick={openSearch} aria-label="Search">
               <IconSearch size={isEmbed ? 18 : 20} />
             </ActionIcon>
             {!isEmbed && (
             <Popover opened={notifOpened} onChange={setNotifOpened.toggle} position="bottom-end" width={360} shadow="lg">
               <Popover.Target>
                 <Indicator color="red" size={8} offset={4} processing disabled={unreadCount === 0}>
-                  <ActionIcon variant="subtle" color="white" size="lg" onClick={setNotifOpened.toggle}>
+                  <ActionIcon variant="subtle" color="white" size="lg" onClick={setNotifOpened.toggle} aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : 'Notifications'}>
                     <IconBell size={20} />
                   </ActionIcon>
                 </Indicator>
@@ -294,6 +294,8 @@ export function AppLayout() {
         overlayProps={{ backgroundOpacity: 0.3, blur: 2 }}
       >
         <TextInput
+          aria-label="Search pages"
+          type="search"
           placeholder="Search pages..."
           leftSection={<IconSearch size={16} />}
           value={searchQuery}

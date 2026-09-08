@@ -72,17 +72,17 @@ export function CandidateDetail({
     <Stack gap="md">
       <Flex justify="space-between" align="center">
         <Group gap="xs">
-          <ActionIcon variant="subtle" onClick={onPrev} disabled={currentIndex === 0}>
+          <ActionIcon variant="subtle" onClick={onPrev} disabled={currentIndex === 0} aria-label="Previous candidate">
             <IconChevronLeft size={18} />
           </ActionIcon>
           <Text size="sm" c="dimmed">
             {currentIndex + 1}/{total}
           </Text>
-          <ActionIcon variant="subtle" onClick={onNext} disabled={currentIndex === total - 1}>
+          <ActionIcon variant="subtle" onClick={onNext} disabled={currentIndex === total - 1} aria-label="Next candidate">
             <IconChevronRight size={18} />
           </ActionIcon>
         </Group>
-        <ActionIcon variant="subtle" onClick={onClose}>
+        <ActionIcon variant="subtle" onClick={onClose} aria-label="Close candidate details">
           <IconX size={18} />
         </ActionIcon>
       </Flex>
@@ -98,10 +98,21 @@ export function CandidateDetail({
               {candidate.firstName} {candidate.lastName}
             </Title>
             <Group gap={4}>
-              <ActionIcon variant="subtle" size="sm" onClick={onEdit}>
+              <ActionIcon
+                variant="subtle"
+                size="sm"
+                onClick={onEdit}
+                aria-label={`Edit ${candidate.firstName} ${candidate.lastName}`}
+              >
                 <IconEdit size={16} />
               </ActionIcon>
-              <ActionIcon variant="subtle" size="sm" color="red" onClick={onDelete}>
+              <ActionIcon
+                variant="subtle"
+                size="sm"
+                color="red"
+                onClick={onDelete}
+                aria-label={`Delete ${candidate.firstName} ${candidate.lastName}`}
+              >
                 <IconTrash size={16} />
               </ActionIcon>
             </Group>

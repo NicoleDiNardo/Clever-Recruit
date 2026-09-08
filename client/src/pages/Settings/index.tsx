@@ -19,7 +19,7 @@ import {
   FileButton,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { useMantineColorScheme } from '@mantine/core';
+import { useMantineColorScheme, type MantineColorScheme } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import {
   IconUser,
@@ -423,7 +423,7 @@ export function Settings() {
               <Select
                 label="Theme"
                 value={appearance.theme}
-                onChange={(val) => setAppearance((s) => ({ ...s, theme: val || 'light' }))}
+                onChange={(val) => setAppearance((s) => ({ ...s, theme: (val as MantineColorScheme) || 'light' }))}
                 data={[
                   { value: 'light', label: 'Light' },
                   { value: 'dark', label: 'Dark' },

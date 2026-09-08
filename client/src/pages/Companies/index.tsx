@@ -176,6 +176,8 @@ export function Companies() {
       </Flex>
 
       <TextInput
+        aria-label="Search companies"
+        type="search"
         placeholder="Search companies..."
         leftSection={<IconSearch size={16} />}
         value={search}
