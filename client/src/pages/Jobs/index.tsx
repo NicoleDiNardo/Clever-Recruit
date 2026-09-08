@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Title,
   Text,
@@ -36,8 +36,10 @@ import {
 import { mockCompanies } from '../../data/mockData';
 import type { Job } from '../../types';
 import { mockJobs as initialJobs } from '../../data/mockData';
+import { useCandidates } from '../../context/CandidatesContext';
 
 export function Jobs() {
+  const { candidates } = useCandidates();
   const [jobs, setJobs] = useState<Job[]>(initialJobs);
   const [search, setSearch] = useState('');
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
@@ -189,10 +191,19 @@ export function Jobs() {
     setJobToDelete(null);
   };
 
-  const candidateCounts: Record<string, number> = {};
-  jobs.forEach((job) => {
-    candidateCounts[job.id] = Math.floor(Math.random() * 20) + 3;
-  });
+  // This was Math.random() computed during render, so the Candidates badge on
+  // every job row changed on each keystroke in the search box and every time a
+  // drawer opened. Counting the real candidates is both stable and true.
+  const candidateCounts: Record<string, number> = useMemo(() => {
+    const counts: Record<string, number> = {};
+    jobs.forEach((job) => {
+      const jobTitle = job.title.toUpperCase();
+      counts[job.id] = candidates.filter(
+        (c) => (c.jobTitle ?? '').toUpperCase() === jobTitle
+      ).length;
+    });
+    return counts;
+  }, [jobs, candidates]);
 
   return (
     <Box>

@@ -9,6 +9,7 @@ import { Calendar } from './pages/Calendar';
 import { Reports } from './pages/Reports';
 import { Settings } from './pages/Settings';
 import { Login } from './pages/Login';
+import { NotFound } from './pages/NotFound';
 import { useUser } from './context/UserContext';
 import { isEmbedMode } from './hooks/useEmbedMode';
 
@@ -47,6 +48,9 @@ export function App() {
         <Route path="/calendar" element={<Calendar />} />
         <Route path="/reports" element={<Reports />} />
         <Route path="/settings" element={<Settings />} />
+        {/* Without this, an unmatched URL rendered a blank page with no shell
+            and no way back. */}
+        <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>
   );

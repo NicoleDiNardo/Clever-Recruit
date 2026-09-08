@@ -114,8 +114,13 @@ export function Candidates() {
   });
 
   const pageSize = 15;
-  const totalPages = Math.ceil(sortedCandidates.length / pageSize);
-  const paginatedCandidates = sortedCandidates.slice((page - 1) * pageSize, page * pageSize);
+  const totalPages = Math.max(1, Math.ceil(sortedCandidates.length / pageSize));
+  // page was never reset when a filter or the search changed, so narrowing 221
+  // candidates to 3 while on page 6 sliced at offset 75 and rendered an empty
+  // table — under a header reading "Candidates (3)", with the pagination
+  // hidden because totalPages was 1, and no way back except clearing the search.
+  const safePage = Math.min(page, totalPages);
+  const paginatedCandidates = sortedCandidates.slice((safePage - 1) * pageSize, safePage * pageSize);
 
   const handleSort = (column: string) => {
     if (sortBy === column) {
@@ -587,9 +592,34 @@ export function Candidates() {
       </Box>
       )}
 
+      {/* There was no empty state: a search matching nothing rendered bare
+          column headers, or on mobile nothing at all. */}
+      {sortedCandidates.length === 0 && (
+        <Flex direction="column" align="center" gap="sm" py={64}>
+          <Text fw={600}>No candidates match those filters</Text>
+          <Text size="sm" c="dimmed" ta="center" maw={360}>
+            Try a different search term, or clear the filters to see all{' '}
+            {candidates.length} candidates.
+          </Text>
+          <Button
+            variant="light"
+            mt="xs"
+            onClick={() => {
+              setSearch('');
+              setFilterStatus(null);
+              setFilterStage(null);
+              setFilterRole(null);
+              setPage(1);
+            }}
+          >
+            Clear filters
+          </Button>
+        </Flex>
+      )}
+
       {totalPages > 1 && (
         <Flex justify="center" mt="lg">
-          <Pagination total={totalPages} value={page} onChange={setPage} />
+          <Pagination total={totalPages} value={safePage} onChange={setPage} />
         </Flex>
       )}
 
