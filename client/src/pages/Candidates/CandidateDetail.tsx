@@ -25,6 +25,10 @@ import {
   IconMapPin,
 } from '@tabler/icons-react';
 import type { Candidate } from '../../types';
+import {
+  getEmploymentColor,
+  getJobTitleColor,
+} from '../../utils/statusColors';
 
 interface CandidateDetailProps {
   candidate: Candidate;
@@ -59,15 +63,6 @@ export function CandidateDetail({
   onDelete,
   onStageChange,
 }: CandidateDetailProps) {
-  const getJobTitleColor = (title?: string) => {
-    if (!title) return 'gray';
-    const t = title.toLowerCase();
-    if (t.includes('engineer') || t.includes('software')) return 'cyan';
-    if (t.includes('designer')) return 'violet';
-    if (t.includes('manager')) return 'teal';
-    return 'blue';
-  };
-
   return (
     <Stack gap="md">
       <Flex justify="space-between" align="center">
@@ -148,7 +143,7 @@ export function CandidateDetail({
             {candidate.employmentStatus && (
               <Badge
                 variant="light"
-                color={candidate.employmentStatus === 'Employed' ? 'green' : 'red'}
+                color={getEmploymentColor(candidate.employmentStatus)}
                 size="sm"
               >
                 {candidate.employmentStatus}
@@ -209,7 +204,7 @@ export function CandidateDetail({
       <Divider />
 
       <Box>
-        <Title order={5} c="blue.7" mb="sm">
+        <Title order={4} mb="md">
           Assignments
         </Title>
         {candidate.assignments && candidate.assignments.length > 0 ? (

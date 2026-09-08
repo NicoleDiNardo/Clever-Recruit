@@ -148,7 +148,7 @@ export function Settings() {
       <Title order={2} c="blue.7" mb={4}>
         Settings
       </Title>
-      <Text c="dimmed" size="sm" mb="xl">
+      <Text c="dimmed" size="sm" mb="lg">
         Manage your account preferences and configurations.
       </Text>
 
@@ -226,7 +226,7 @@ export function Settings() {
 
             <Grid.Col span={{ base: 12, md: 4 }}>
               <Card withBorder padding="lg">
-                <Title order={5} mb="md">
+                <Title order={4} mb="md">
                   Account Info
                 </Title>
                 <Stack gap="sm">
@@ -237,7 +237,7 @@ export function Settings() {
                   <Divider />
                   <Group justify="space-between">
                     <Text size="sm" c="dimmed">Status</Text>
-                    <Text size="sm" fw={500} c="green">Active</Text>
+                    <Text size="sm" fw={500} c="green.9">Active</Text>
                   </Group>
                   <Divider />
                   <Group justify="space-between">
@@ -261,7 +261,7 @@ export function Settings() {
         </Tabs.Panel>
 
         <Tabs.Panel value="notifications">
-          <Card withBorder padding="lg" maw={700}>
+          <Card withBorder padding="lg" maw={720}>
             <Title order={4} mb="lg">
               Notification Preferences
             </Title>
@@ -340,7 +340,7 @@ export function Settings() {
         </Tabs.Panel>
 
         <Tabs.Panel value="security">
-          <Card withBorder padding="lg" maw={600}>
+          <Card withBorder padding="lg" maw={720}>
             <form onSubmit={handlePasswordUpdate}>
               <Title order={4} mb="lg">
                 Change Password
@@ -396,7 +396,7 @@ export function Settings() {
                     <Text size="sm" fw={500}>Current Session</Text>
                     <Text size="xs" c="dimmed">macOS - Chrome - Last active now</Text>
                   </div>
-                  <Text size="xs" c="green" fw={500}>Active</Text>
+                  <Text size="xs" c="green.9" fw={500}>Active</Text>
                 </Group>
               </Card>
               <Card withBorder padding="sm">
@@ -415,7 +415,7 @@ export function Settings() {
         </Tabs.Panel>
 
         <Tabs.Panel value="appearance">
-          <Card withBorder padding="lg" maw={600}>
+          <Card withBorder padding="lg" maw={720}>
             <Title order={4} mb="lg">
               Appearance Settings
             </Title>

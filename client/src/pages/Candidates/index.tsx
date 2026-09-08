@@ -40,6 +40,12 @@ import type { Candidate } from '../../types';
 import { useEmbedMode } from '../../hooks/useEmbedMode';
 import { useSearchParams } from 'react-router-dom';
 import { useCandidates } from '../../context/CandidatesContext';
+import {
+  getStageColor,
+  getStatusColor,
+  getJobTitleColor,
+} from '../../utils/statusColors';
+
 
 const PIPELINE_STAGES = [
   { value: 'applied', label: 'Applied' },
@@ -248,34 +254,6 @@ export function Candidates() {
     );
   };
 
-  const getJobTitleColor = (title?: string) => {
-    if (!title) return 'gray';
-    const t = title.toLowerCase();
-    if (t.includes('engineer') || t.includes('software')) return 'cyan';
-    if (t.includes('designer')) return 'violet';
-    if (t.includes('manager')) return 'teal';
-    return 'blue';
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'active': return 'green';
-      case 'inactive': return 'gray';
-      default: return 'blue';
-    }
-  };
-
-  const getStageColor = (stage?: string) => {
-    if (!stage) return 'gray';
-    switch (stage.toLowerCase()) {
-      case 'interview': return 'blue';
-      case 'rejected': return 'red';
-      case 'hired': return 'green';
-      case 'offer': return 'orange';
-      default: return 'gray';
-    }
-  };
-
   return (
     <Box>
       <Flex justify="space-between" align="flex-start" mb="lg" wrap="wrap" gap="md">
@@ -414,7 +392,7 @@ export function Candidates() {
         </Stack>
       ) : (
       <Box style={{ overflowX: 'auto' }}>
-        <Table striped highlightOnHover verticalSpacing="xs">
+        <Table striped highlightOnHover verticalSpacing="sm">
           <Table.Thead>
             <Table.Tr>
               <Table.Th

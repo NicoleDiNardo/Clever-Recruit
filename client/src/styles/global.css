@@ -84,3 +84,24 @@ html.embed-mode .mantine-Modal-content,
 html.embed-mode .mantine-Paper-root {
   max-width: 100%;
 }
+
+/* Mantine's `dimmed` resolves to gray-6 (#868e96), which is 3.3:1 on white —
+   below AA, and it is the dominant treatment for every secondary line in the
+   app at 12px. gray-7 (#495057) reads at 7.5:1 and keeps the hierarchy. */
+:root {
+  --mantine-color-dimmed: var(--mantine-color-gray-7);
+}
+
+/* `all: unset` on the Dashboard pipeline buttons stripped the focus outline
+   with nothing put back, and the clickable table rows and cards throughout the
+   app had no focus treatment at all. */
+:where(button, a, [role='button'], [tabindex]):focus-visible {
+  outline: 2px solid var(--mantine-color-blue-6);
+  outline-offset: 2px;
+}
+
+/* Digits should line up so a column can be scanned. */
+.numeric-cell {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}

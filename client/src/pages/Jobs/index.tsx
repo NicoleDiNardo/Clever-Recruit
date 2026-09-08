@@ -37,6 +37,7 @@ import { mockCompanies } from '../../data/mockData';
 import type { Job } from '../../types';
 import { mockJobs as initialJobs } from '../../data/mockData';
 import { useCandidates } from '../../context/CandidatesContext';
+import { EmptyState } from '../../components/EmptyState';
 
 export function Jobs() {
   const { candidates } = useCandidates();
@@ -234,7 +235,7 @@ export function Jobs() {
         value={search}
         onChange={(e) => setSearch(e.currentTarget.value)}
         mb="md"
-        style={{ maxWidth: 400 }}
+        maw={400}
       />
 
       <Box style={{ overflowX: 'auto', maxWidth: '100%', minWidth: 0 }}>
@@ -245,9 +246,9 @@ export function Jobs() {
               <Table.Th>Company</Table.Th>
               <Table.Th>Location</Table.Th>
               <Table.Th>Type</Table.Th>
-              <Table.Th>Salary</Table.Th>
+              <Table.Th ta="right">Salary</Table.Th>
               <Table.Th>Status</Table.Th>
-              <Table.Th>Candidates</Table.Th>
+              <Table.Th ta="right">Candidates</Table.Th>
               <Table.Th>Tools</Table.Th>
             </Table.Tr>
           </Table.Thead>
@@ -337,6 +338,16 @@ export function Jobs() {
           </Table.Tbody>
         </Table>
       </Box>
+
+      {filteredJobs.length === 0 && (
+        <EmptyState
+          icon={IconBuilding}
+          title="No jobs match that search"
+          description={`Try a different term, or clear it to see all ${jobs.length} jobs.`}
+          actionLabel="Clear search"
+          onAction={() => setSearch('')}
+        />
+      )}
 
       {/* Detail Drawer */}
       <Drawer

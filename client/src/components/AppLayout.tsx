@@ -72,7 +72,9 @@ export function AppLayout() {
   const [notifList, setNotifList] = useState(initialNotifications);
   const theme = useMantineTheme();
   const { colorScheme, toggleColorScheme } = useMantineColorScheme();
-  const isMobile = useMediaQuery('(max-width: 768px)');
+  const isMobile = useMediaQuery('(max-width: 48em)', false, {
+    getInitialValueInEffect: false,
+  });
   const isEmbed = useEmbedMode();
   const location = useLocation();
   const navigate = useNavigate();

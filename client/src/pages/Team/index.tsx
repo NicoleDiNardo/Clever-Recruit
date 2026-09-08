@@ -154,7 +154,7 @@ export function Team() {
           ({mockUsers.length})
         </Text>
       </Group>
-      <Text c="dimmed" size="sm" mb="xl">
+      <Text c="dimmed" size="sm" mb="lg">
         Your recruitment team members and their performance.
       </Text>
 
@@ -225,20 +225,21 @@ export function Team() {
                 <Text size="xs" c="dimmed">Candidates</Text>
               </Card>
               <Card withBorder p="sm" ta="center">
-                <Text size="xl" fw={700} c="teal">{selectedMember.stats.activeAssignments}</Text>
+                <Text size="xl" fw={700} c="teal.8">{selectedMember.stats.activeAssignments}</Text>
                 <Text size="xs" c="dimmed">Active</Text>
               </Card>
               <Card withBorder p="sm" ta="center">
-                <Text size="xl" fw={700} c="green">{selectedMember.stats.placements}</Text>
+                <Text size="xl" fw={700} c="green.9">{selectedMember.stats.placements}</Text>
                 <Text size="xs" c="dimmed">Placed</Text>
               </Card>
             </SimpleGrid>
 
             <Divider />
 
-            <Title order={5}>Managed Candidates</Title>
+            <Title order={4} mb="md">Managed Candidates</Title>
             {memberCandidates.length > 0 ? (
-              <Table verticalSpacing="xs" striped>
+              <Table.ScrollContainer mah={320} minWidth={380}>
+              <Table striped highlightOnHover verticalSpacing="sm" stickyHeader>
                 <Table.Thead>
                   <Table.Tr>
                     <Table.Th>Name</Table.Th>
@@ -264,6 +265,7 @@ export function Team() {
                   ))}
                 </Table.Tbody>
               </Table>
+              </Table.ScrollContainer>
             ) : (
               <Text size="sm" c="dimmed">No candidates assigned.</Text>
             )}

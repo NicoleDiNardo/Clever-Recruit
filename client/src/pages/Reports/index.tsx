@@ -18,6 +18,7 @@ import {
   Button,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
+import { STAGE_COLORS } from '../../utils/statusColors';
 import {
   IconTrendingUp,
   IconTrendingDown,
@@ -31,13 +32,13 @@ import {
 } from '@tabler/icons-react';
 
 const hiringFunnel = [
-  { stage: 'Applications Received', count: 1240, percentage: 100, color: 'blue' },
-  { stage: 'Screening Passed', count: 680, percentage: 55, color: 'cyan' },
-  { stage: 'Phone Interview', count: 340, percentage: 27, color: 'teal' },
-  { stage: 'Technical Assessment', count: 180, percentage: 15, color: 'green' },
-  { stage: 'Final Interview', count: 95, percentage: 8, color: 'yellow' },
-  { stage: 'Offer Extended', count: 42, percentage: 3, color: 'orange' },
-  { stage: 'Hired', count: 28, percentage: 2, color: 'red' },
+  { stage: 'Applications Received', count: 1240, percentage: 100, color: STAGE_COLORS.applied },
+  { stage: 'Screening Passed', count: 680, percentage: 55, color: STAGE_COLORS.screening },
+  { stage: 'Phone Interview', count: 340, percentage: 27, color: STAGE_COLORS.interview },
+  { stage: 'Technical Assessment', count: 180, percentage: 15, color: STAGE_COLORS.assessment },
+  { stage: 'Final Interview', count: 95, percentage: 8, color: STAGE_COLORS.interview },
+  { stage: 'Offer Extended', count: 42, percentage: 3, color: STAGE_COLORS.offer },
+  { stage: 'Hired', count: 28, percentage: 2, color: STAGE_COLORS.hired },
 ];
 
 const sourceBreakdown = [
@@ -80,7 +81,7 @@ function MetricCard({ title, value, subtitle, icon, color, trend, lowerIsBetter 
   return (
     <Card withBorder padding="lg">
       <Group justify="space-between" mb="xs">
-        <ThemeIcon size={40} radius="md" variant="light" color={color}>
+        <ThemeIcon size={48} radius="md" variant="light" color={color}>
           {icon}
         </ThemeIcon>
         <Group gap={4}>
@@ -89,12 +90,12 @@ function MetricCard({ title, value, subtitle, icon, color, trend, lowerIsBetter 
           ) : (
             <IconTrendingDown size={16} color={`var(--mantine-color-${good ? 'teal' : 'red'}-6)`} />
           )}
-          <Text size="xs" c={good ? 'teal' : 'red'} fw={600}>
+          <Text size="xs" c={good ? 'teal.8' : 'red.8'} fw={600}>
             {Math.abs(trend)}%
           </Text>
         </Group>
       </Group>
-      <Text size="xl" fw={700}>
+      <Text fz={28} fw={700} lh={1.1}>
         {value}
       </Text>
       <Text size="xs" c="dimmed" fw={500} tt="uppercase">
@@ -121,7 +122,7 @@ export function Reports() {
 
   return (
     <Box>
-      <Group justify="space-between" align="flex-start" mb="lg">
+      <Group justify="space-between" align="flex-start" mb="md">
         <div>
           <Title order={2} c="blue.7">
             Reports & Analytics
@@ -188,7 +189,7 @@ export function Reports() {
       <Grid mb="xl">
         <Grid.Col span={{ base: 12, md: 7 }}>
           <Card withBorder padding="lg" h="100%">
-            <Title order={4} mb="lg">
+            <Title order={4} mb="md">
               Hiring Funnel
             </Title>
             <Stack gap="md">
@@ -228,10 +229,10 @@ export function Reports() {
 
         <Grid.Col span={{ base: 12, md: 5 }}>
           <Card withBorder padding="lg" h="100%">
-            <Title order={4} mb="lg">
+            <Title order={4} mb="md">
               Source Breakdown
             </Title>
-            <Group justify="center" mb="lg">
+            <Group justify="center" mb="md">
               <RingProgress
                 size={160}
                 thickness={20}
@@ -323,13 +324,14 @@ export function Reports() {
             <Title order={4} mb="md">
               Top Recruiters
             </Title>
-            <Table verticalSpacing="sm">
+            <Table.ScrollContainer minWidth={420}>
+            <Table striped highlightOnHover verticalSpacing="sm">
               <Table.Thead>
                 <Table.Tr>
                   <Table.Th>Recruiter</Table.Th>
-                  <Table.Th>Placements</Table.Th>
-                  <Table.Th>Interviews</Table.Th>
-                  <Table.Th>Success Rate</Table.Th>
+                  <Table.Th ta="right">Placements</Table.Th>
+                  <Table.Th ta="right">Interviews</Table.Th>
+                  <Table.Th ta="right">Success Rate</Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
@@ -345,15 +347,15 @@ export function Reports() {
                         </Text>
                       </Group>
                     </Table.Td>
-                    <Table.Td>
-                      <Text size="sm" fw={600} c="teal">
+                    <Table.Td className="numeric-cell">
+                      <Text size="sm" fw={600} c="teal.8">
                         {p.placements}
                       </Text>
                     </Table.Td>
-                    <Table.Td>
+                    <Table.Td className="numeric-cell">
                       <Text size="sm">{p.interviews}</Text>
                     </Table.Td>
-                    <Table.Td>
+                    <Table.Td ta="right">
                       <Badge variant="light" color="green" size="sm">
                         {p.ratio}
                       </Badge>
@@ -362,6 +364,7 @@ export function Reports() {
                 ))}
               </Table.Tbody>
             </Table>
+            </Table.ScrollContainer>
           </Card>
         </Grid.Col>
       </Grid>

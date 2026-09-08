@@ -24,6 +24,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useCandidates } from '../../context/CandidatesContext';
 import { mockJobs } from '../../data/mockData';
+import { STAGE_COLORS } from '../../utils/statusColors';
 
 interface StatCardProps {
   title: string;
@@ -43,9 +44,9 @@ function StatCard({ title, value, icon, color, change, onClick }: StatCardProps)
           <Text size="xs" c="dimmed" tt="uppercase" fw={600}>
             {title}
           </Text>
-          <Title order={2} mt={4}>
+          <Text fz={28} fw={700} lh={1.1} mt={4}>
             {value}
-          </Title>
+          </Text>
         </div>
         <ThemeIcon size={48} radius="md" variant="light" color={color}>
           {icon}
@@ -77,13 +78,13 @@ function StatCard({ title, value, icon, color, change, onClick }: StatCardProps)
 }
 
 const pipelineStageKeys = [
-  { stage: 'Applied', key: 'applied', color: 'blue' },
-  { stage: 'Screening', key: 'screening', color: 'cyan' },
-  { stage: 'Interview', key: 'interview', color: 'teal' },
-  { stage: 'Assessment', key: 'assessment', color: 'yellow' },
-  { stage: 'Offer', key: 'offer', color: 'orange' },
-  { stage: 'Hired', key: 'hired', color: 'green' },
-];
+  { stage: 'Applied', key: 'applied' },
+  { stage: 'Screening', key: 'screening' },
+  { stage: 'Interview', key: 'interview' },
+  { stage: 'Assessment', key: 'assessment' },
+  { stage: 'Offer', key: 'offer' },
+  { stage: 'Hired', key: 'hired' },
+].map((s) => ({ ...s, color: STAGE_COLORS[s.key] }));
 
 const recentActivity = [
   {
@@ -137,6 +138,8 @@ export function Dashboard() {
     count: stageCounts[s.key] ?? 0,
   }));
   const totalPipeline = pipelineStages.reduce((sum, s) => sum + s.count, 0);
+  const pipelinePct = (count: number) =>
+    totalPipeline > 0 ? (count / totalPipeline) * 100 : 0;
   const interviewCount = stageCounts.interview ?? 0;
   const hiredCount = stageCounts.hired ?? 0;
   const activeJobs = mockJobs.filter((j) => j.status === 'open' || j.status === 'active').length;
@@ -146,11 +149,11 @@ export function Dashboard() {
       <Title order={2} c="blue.7" mb={4}>
         Dashboard
       </Title>
-      <Text c="dimmed" size="sm" mb="xl">
+      <Text c="dimmed" size="sm" mb="lg">
         Welcome back! Here's an overview of your recruitment activity.
       </Text>
 
-      <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} mb="xl">
+      <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} mb="lg">
         <StatCard
           title="Total Candidates"
           value={candidates.length.toLocaleString()}
@@ -216,12 +219,12 @@ export function Dashboard() {
                         {stage.count}
                       </Text>
                       <Text size="xs" c="dimmed">
-                        ({Math.round((stage.count / totalPipeline) * 100)}%)
+                        ({Math.round(pipelinePct(stage.count))}%)
                       </Text>
                     </Group>
                   </Group>
                   <Progress
-                    value={(stage.count / totalPipeline) * 100}
+                    value={pipelinePct(stage.count)}
                     color={stage.color}
                     size="lg"
                     radius="xl"
@@ -236,7 +239,7 @@ export function Dashboard() {
                 thickness={14}
                 roundCaps
                 sections={pipelineStages.map((s) => ({
-                  value: (s.count / totalPipeline) * 100,
+                  value: pipelinePct(s.count),
                   color: `var(--mantine-color-${s.color}-6)`,
                 }))}
                 label={

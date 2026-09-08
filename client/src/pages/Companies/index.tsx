@@ -36,6 +36,7 @@ import {
 import { mockJobs } from '../../data/mockData';
 import { mockCompanies as initialCompanies } from '../../data/mockData';
 import type { Company } from '../../types';
+import { EmptyState } from '../../components/EmptyState';
 
 export function Companies() {
   const [companies, setCompanies] = useState<Company[]>(initialCompanies);
@@ -182,8 +183,8 @@ export function Companies() {
         leftSection={<IconSearch size={16} />}
         value={search}
         onChange={(e) => setSearch(e.currentTarget.value)}
-        mb="lg"
-        style={{ maxWidth: 400 }}
+        mb="md"
+        maw={400}
       />
 
       <SimpleGrid cols={{ base: 1, sm: 2, lg: 3, xl: 4 }}>
@@ -233,13 +234,20 @@ export function Companies() {
                   {getOpenJobs(company.id)} open positions
                 </Text>
               </Group>
-              <Badge variant="light" color="blue" size="sm">
-                Active
-              </Badge>
             </Group>
           </Card>
         ))}
       </SimpleGrid>
+
+      {filteredCompanies.length === 0 && (
+        <EmptyState
+          icon={IconBriefcase}
+          title="No companies match that search"
+          description={`Try a different term, or clear it to see all ${companies.length} companies.`}
+          actionLabel="Clear search"
+          onAction={() => setSearch('')}
+        />
+      )}
 
       {/* Detail Drawer */}
       <Drawer
@@ -289,7 +297,7 @@ export function Companies() {
 
             <Divider />
 
-            <Title order={5}>Open Jobs</Title>
+            <Title order={4} mb="md">Open Jobs</Title>
             <Stack gap="xs">
               {mockJobs
                 .filter((j) => j.companyId === selectedCompany.id && j.status === 'open')
