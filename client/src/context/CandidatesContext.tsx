@@ -2,7 +2,8 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { mockCandidates as initialCandidates } from '../data/mockData';
 import type { Candidate } from '../types';
 
-const STORAGE_KEY = 'cr-candidates';
+/* Bumped when the seed data changes so stale demo state is superseded. */
+const STORAGE_KEY = 'cr-candidates-v2';
 
 function loadCandidates(): Candidate[] {
   try {
@@ -20,6 +21,7 @@ interface CandidatesContextType {
   updateCandidate: (id: string, updates: Partial<Candidate>) => void;
   addCandidate: (candidate: Candidate) => void;
   removeCandidate: (id: string) => void;
+  resetCandidates: () => void;
   stageCounts: Record<string, number>;
 }
 
@@ -54,6 +56,10 @@ export function CandidatesProvider({ children }: { children: ReactNode }) {
     setCandidates((prev) => prev.filter((c) => c.id !== id));
   }, []);
 
+  const resetCandidates = useCallback(() => {
+    setCandidates(initialCandidates);
+  }, []);
+
   const stageCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     for (const key of PIPELINE_KEYS) {
@@ -70,9 +76,10 @@ export function CandidatesProvider({ children }: { children: ReactNode }) {
       updateCandidate,
       addCandidate,
       removeCandidate,
+      resetCandidates,
       stageCounts,
     }),
-    [candidates, updateCandidate, addCandidate, removeCandidate, stageCounts]
+    [candidates, updateCandidate, addCandidate, removeCandidate, resetCandidates, stageCounts]
   );
 
   return <CandidatesContext.Provider value={value}>{children}</CandidatesContext.Provider>;

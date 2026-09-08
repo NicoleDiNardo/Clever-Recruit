@@ -30,12 +30,12 @@ interface StatCardProps {
   value: string;
   icon: React.ReactNode;
   color: string;
-  change: number;
+  change?: number;
   onClick?: () => void;
 }
 
 function StatCard({ title, value, icon, color, change, onClick }: StatCardProps) {
-  const isPositive = change > 0;
+  const isPositive = (change ?? 0) > 0;
   return (
     <Card withBorder padding="lg" style={{ cursor: onClick ? 'pointer' : undefined }} onClick={onClick}>
       <Group justify="space-between">
@@ -51,19 +51,27 @@ function StatCard({ title, value, icon, color, change, onClick }: StatCardProps)
           {icon}
         </ThemeIcon>
       </Group>
-      <Group gap={4} mt="md">
-        {isPositive ? (
-          <IconArrowUpRight size={16} color="var(--mantine-color-teal-6)" />
-        ) : (
-          <IconArrowDownRight size={16} color="var(--mantine-color-red-6)" />
-        )}
-        <Text size="sm" c={isPositive ? 'teal' : 'red'} fw={500}>
-          {Math.abs(change)}%
+      {/* A percentage change is meaningless against a zero baseline — showing
+          "+23% vs last month" under a value of 0 reads as broken, not upbeat. */}
+      {change != null && Number(value) !== 0 ? (
+        <Group gap={4} mt="md">
+          {isPositive ? (
+            <IconArrowUpRight size={16} color="var(--mantine-color-teal-6)" />
+          ) : (
+            <IconArrowDownRight size={16} color="var(--mantine-color-red-6)" />
+          )}
+          <Text size="sm" c={isPositive ? 'teal' : 'red'} fw={500}>
+            {Math.abs(change)}%
+          </Text>
+          <Text size="xs" c="dimmed">
+            vs last month
+          </Text>
+        </Group>
+      ) : (
+        <Text size="xs" c="dimmed" mt="md">
+          No comparison for last month
         </Text>
-        <Text size="xs" c="dimmed">
-          vs last month
-        </Text>
-      </Group>
+      )}
     </Card>
   );
 }
@@ -160,7 +168,7 @@ export function Dashboard() {
           onClick={() => navigate('/jobs')}
         />
         <StatCard
-          title="Interviews This Week"
+          title="In Interview Stage"
           value={String(interviewCount)}
           icon={<IconCalendarEvent size={24} />}
           color="yellow"

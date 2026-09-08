@@ -39,7 +39,7 @@ export const mockUsers: User[] = [
   },
 ];
 
-export const mockCandidates: Candidate[] = [
+const featuredCandidates: Candidate[] = [
   {
     id: '1',
     firstName: 'Robert',
@@ -88,7 +88,7 @@ export const mockCandidates: Candidate[] = [
     jobTitle: 'DESIGNER',
     score: 60,
     status: 'inactive',
-    stage: undefined,
+    stage: 'applied',
     location: 'Berlin',
     currentPosition: 'UI Designer',
     currentOrganization: 'Spotify',
@@ -107,7 +107,7 @@ export const mockCandidates: Candidate[] = [
     jobTitle: 'DESIGNER',
     score: 55,
     status: 'inactive',
-    stage: undefined,
+    stage: 'applied',
     location: 'Paris',
     currentPosition: 'Product Designer',
     currentOrganization: 'Airbnb',
@@ -126,7 +126,7 @@ export const mockCandidates: Candidate[] = [
     jobTitle: 'MANAGER',
     score: 45,
     status: 'inactive',
-    stage: undefined,
+    stage: 'applied',
     location: 'New York',
     currentPosition: 'Engineering Manager',
     currentOrganization: 'Amazon',
@@ -183,7 +183,7 @@ export const mockCandidates: Candidate[] = [
     jobTitle: 'MANAGER',
     score: 42,
     status: 'active',
-    stage: undefined,
+    stage: 'applied',
     location: 'Amsterdam',
     currentPosition: 'Operations Manager',
     currentOrganization: 'Netflix',
@@ -201,7 +201,7 @@ export const mockCandidates: Candidate[] = [
     avatar: undefined,
     jobTitle: 'MANAGER',
     score: 30,
-    status: 'active',
+    status: 'inactive',
     stage: 'rejected',
     location: 'Toronto',
     currentPosition: 'Project Manager',
@@ -220,7 +220,7 @@ export const mockCandidates: Candidate[] = [
     avatar: undefined,
     jobTitle: 'MANAGER',
     score: 20,
-    status: 'active',
+    status: 'inactive',
     stage: 'rejected',
     location: 'Sydney',
     currentPosition: 'Sales Manager',
@@ -240,7 +240,7 @@ export const mockCandidates: Candidate[] = [
     jobTitle: 'MANAGER',
     score: 62,
     status: 'inactive',
-    stage: undefined,
+    stage: 'applied',
     location: 'Singapore',
     currentPosition: 'DevOps Manager',
     currentOrganization: 'Grab',
@@ -258,7 +258,7 @@ export const mockCandidates: Candidate[] = [
     avatar: undefined,
     jobTitle: 'MANAGER',
     score: 33,
-    status: 'active',
+    status: 'inactive',
     stage: 'rejected',
     location: 'Barcelona',
     currentPosition: 'HR Manager',
@@ -288,6 +288,115 @@ export const mockCandidates: Candidate[] = [
     updatedAt: '2025-04-13T14:00:00Z',
   },
 ];
+
+/* ────────────────────────────────────────────────────────────────────────
+   The case study is built on scanning 200+ candidates at a glance, but the
+   demo shipped with 13 — the density argument had nothing to demonstrate on.
+   These records are generated deterministically (no Math.random) so the demo
+   looks identical on every load and in every screenshot.
+   ──────────────────────────────────────────────────────────────────────── */
+
+const FIRST_NAMES = [
+  'Amara', 'Bruno', 'Carla', 'Dmitri', 'Elena', 'Felix', 'Greta', 'Hugo',
+  'Ingrid', 'Jonas', 'Kira', 'Lars', 'Marta', 'Nadia', 'Otto', 'Priya',
+  'Quentin', 'Rosa', 'Stefan', 'Tomas', 'Ulla', 'Viktor', 'Wanda', 'Xavier',
+  'Yara', 'Zoran', 'Aisha', 'Benoit', 'Clara', 'Diego', 'Emil', 'Farah',
+];
+
+const LAST_NAMES = [
+  'Almeida', 'Bergstrom', 'Castellanos', 'Duarte', 'Eriksen', 'Ferrari',
+  'Grabowski', 'Haldorsen', 'Ivanova', 'Jankovic', 'Kowalski', 'Lindqvist',
+  'Moreau', 'Nowak', 'Olsen', 'Petrov', 'Quintero', 'Rossi', 'Saunders',
+  'Thorsen', 'Ubaldi', 'Varga', 'Weber', 'Ximenes', 'Yilmaz', 'Zielinski',
+];
+
+const ROLES: Array<{ title: string; position: string }> = [
+  { title: 'SOFTWARE ENGINEER', position: 'Software Engineer' },
+  { title: 'FRONTEND ENGINEER', position: 'Frontend Engineer' },
+  { title: 'BACKEND ENGINEER', position: 'Backend Engineer' },
+  { title: 'DATA ENGINEER', position: 'Data Engineer' },
+  { title: 'PRODUCT DESIGNER', position: 'Product Designer' },
+  { title: 'UX RESEARCHER', position: 'UX Researcher' },
+  { title: 'PRODUCT MANAGER', position: 'Product Manager' },
+  { title: 'ENGINEERING MANAGER', position: 'Engineering Manager' },
+  { title: 'QA ENGINEER', position: 'QA Engineer' },
+  { title: 'DEVOPS ENGINEER', position: 'DevOps Engineer' },
+  { title: 'DATA SCIENTIST', position: 'Data Scientist' },
+  { title: 'TECHNICAL WRITER', position: 'Technical Writer' },
+];
+
+const ORGS = [
+  'Spotify', 'Klarna', 'Monzo', 'Adyen', 'Zalando', 'Bolt', 'Wise',
+  'Personio', 'Miro', 'Figma', 'Datadog', 'Elastic', 'Contentful', 'N26',
+];
+
+const CITIES = [
+  'Lisbon', 'Berlin', 'Amsterdam', 'Dublin', 'Barcelona', 'Stockholm',
+  'Warsaw', 'Milan', 'Paris', 'Copenhagen', 'Vienna', 'Porto', 'London',
+];
+
+/* Weighted so the pipeline narrows the way a real one does. */
+const STAGE_WEIGHTS: Array<[string, number]> = [
+  ['applied', 38],
+  ['screening', 22],
+  ['interview', 16],
+  ['assessment', 9],
+  ['offer', 5],
+  ['hired', 4],
+  ['rejected', 6],
+];
+
+const STAGE_SEQUENCE: string[] = STAGE_WEIGHTS.flatMap(([stage, weight]) =>
+  Array.from({ length: weight }, () => stage)
+);
+
+/* A terminal stage means the candidate is no longer in play. Anything else
+   is active — the old data had candidates marked active and rejected at once. */
+const TERMINAL_STAGES = new Set(['hired', 'rejected']);
+
+const GENERATED_COUNT = 208;
+
+function generatedCandidates(): Candidate[] {
+  const out: Candidate[] = [];
+  for (let i = 0; i < GENERATED_COUNT; i += 1) {
+    const first = FIRST_NAMES[(i * 7) % FIRST_NAMES.length];
+    const last = LAST_NAMES[(i * 11) % LAST_NAMES.length];
+    const role = ROLES[(i * 5) % ROLES.length];
+    const stage = STAGE_SEQUENCE[(i * 13) % STAGE_SEQUENCE.length];
+    const terminal = TERMINAL_STAGES.has(stage);
+    /* Scores cluster in the 40-95 band rather than spreading uniformly. */
+    const score = 42 + (((i * 29) % 54));
+    const day = 1 + ((i * 3) % 27);
+    const month = 1 + ((i * 5) % 4);
+    const created = `2026-0${month}-${String(day).padStart(2, '0')}T09:00:00Z`;
+
+    out.push({
+      id: `g${i + 1}`,
+      firstName: first,
+      lastName: last,
+      email: `${first.toLowerCase()}.${last.toLowerCase()}@example.com`,
+      phone: `+44 (452) 886 ${String(10 + (i % 90)).padStart(2, '0')} ${String(10 + ((i * 3) % 90)).padStart(2, '0')}`,
+      jobTitle: role.title,
+      score,
+      status: terminal ? 'inactive' : 'active',
+      stage,
+      location: CITIES[(i * 3) % CITIES.length],
+      currentPosition: role.position,
+      currentOrganization: ORGS[(i * 9) % ORGS.length],
+      employmentStatus: i % 3 === 0 ? 'Unemployed' : 'Employed',
+      ownerId: String(1 + (i % 4)),
+      createdAt: created,
+      updatedAt: created,
+    });
+  }
+  return out;
+}
+
+export const mockCandidates: Candidate[] = [
+  ...featuredCandidates,
+  ...generatedCandidates(),
+];
+
 
 export const mockCompanies: Company[] = [
   {

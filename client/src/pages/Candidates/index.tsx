@@ -54,7 +54,7 @@ const PIPELINE_STAGES = [
 export function Candidates() {
   const [searchParams, setSearchParams] = useSearchParams();
   const stageFromUrl = searchParams.get('stage');
-  const { candidates, setCandidates, updateCandidate, addCandidate, removeCandidate } = useCandidates();
+  const { candidates, setCandidates, updateCandidate, addCandidate, removeCandidate, resetCandidates } = useCandidates();
   const [search, setSearch] = useState('');
   const [ownOnly, setOwnOnly] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string | null>(null);
@@ -71,9 +71,14 @@ export function Candidates() {
   const [sortBy, setSortBy] = useState<string>('');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [page, setPage] = useState(1);
+  const [filterRole, setFilterRole] = useState<string | null>(null);
   const isMobile = useMediaQuery('(max-width: 768px)');
   const isEmbed = useEmbedMode();
-  const showCompactList = isEmbed || isMobile;
+  // Compact cards are a narrow-viewport affordance, not an embed one. The
+  // embed is ~1200px wide on the case study page, which is where the dense
+  // table earns its keep — keying this off isEmbed hid the table from every
+  // reader of the case study.
+  const showCompactList = isMobile;
 
   useEffect(() => {
     setFilterStage(stageFromUrl);
@@ -87,9 +92,18 @@ export function Candidates() {
       (c.jobTitle && c.jobTitle.toLowerCase().includes(search.toLowerCase()));
     const matchesOwner = !ownOnly || c.ownerId === '1';
     const matchesStatus = !filterStatus || c.status === filterStatus;
-    const matchesStage = !filterStage || c.stage === filterStage;
-    return matchesSearch && matchesOwner && matchesStatus && matchesStage;
+    const matchesStage = !filterStage || (c.stage ?? 'applied') === filterStage;
+    const matchesRole = !filterRole || c.jobTitle === filterRole;
+    return matchesSearch && matchesOwner && matchesStatus && matchesStage && matchesRole;
   });
+
+  /* Role list comes from the data rather than a hardcoded enum, so it stays
+     correct as candidates are added or edited. */
+  const roleOptions = Array.from(
+    new Set(candidates.map((c) => c.jobTitle).filter((t): t is string => Boolean(t)))
+  )
+    .sort()
+    .map((title) => ({ value: title, label: title }));
 
   const sortedCandidates = [...filteredCandidates].sort((a, b) => {
     if (!sortBy) return 0;
@@ -300,7 +314,11 @@ export function Candidates() {
           leftSection={<IconSearch size={16} />}
           value={search}
           onChange={(e) => setSearch(e.currentTarget.value)}
-          style={{ minWidth: isEmbed ? 0 : 250, flex: isEmbed ? 1 : undefined, width: isEmbed ? '100%' : undefined }}
+          style={
+            showCompactList
+              ? { flex: '1 1 100%', minWidth: 0 }
+              : { minWidth: 250, flex: isEmbed ? 1 : undefined }
+          }
         />
         <Group gap="md" wrap="wrap">
           {!showCompactList && (
@@ -319,6 +337,20 @@ export function Candidates() {
               <IconX size={14} />
             </ActionIcon>
           )}
+          {/* Edits persist to localStorage, so without this a visitor's second
+              visit shows whatever the first one left behind. */}
+          <Button
+            variant="subtle"
+            color="gray"
+            size={showCompactList ? 'compact-sm' : 'compact-md'}
+            onClick={() => {
+              resetCandidates();
+              setPage(1);
+              notifications.show({ message: 'Demo data reset', color: 'blue' });
+            }}
+          >
+            Reset demo data
+          </Button>
         </Group>
       </Flex>
 
@@ -362,22 +394,20 @@ export function Candidates() {
                   )}
                 </Stack>
               </Group>
-              {candidate.stage && (
-                <Badge
-                  variant="outline"
-                  color={getStageColor(candidate.stage)}
-                  size="xs"
-                  mt="xs"
-                >
-                  {candidate.stage}
-                </Badge>
-              )}
+              <Badge
+                variant="outline"
+                color={getStageColor(candidate.stage ?? 'applied')}
+                size="xs"
+                mt="xs"
+              >
+                {candidate.stage ?? 'applied'}
+              </Badge>
             </Paper>
           ))}
         </Stack>
       ) : (
       <Box style={{ overflowX: 'auto' }}>
-        <Table striped highlightOnHover verticalSpacing="sm">
+        <Table striped highlightOnHover verticalSpacing="xs">
           <Table.Thead>
             <Table.Tr>
               <Table.Th
@@ -397,7 +427,7 @@ export function Candidates() {
                 </Group>
               </Table.Th>
               <Table.Th>Email</Table.Th>
-              <Table.Th>Phone Number</Table.Th>
+              <Table.Th style={{ whiteSpace: 'nowrap' }}>Phone</Table.Th>
               <Table.Th
                 style={{ cursor: 'pointer' }}
                 onClick={() => handleSort('score')}
@@ -452,10 +482,17 @@ export function Candidates() {
                   </Text>
                 </Table.Td>
                 <Table.Td>
-                  <Text size="sm">{candidate.phone}</Text>
+                  <Text size="sm" style={{ whiteSpace: 'nowrap' }}>
+                    {candidate.phone}
+                  </Text>
                 </Table.Td>
                 <Table.Td>
-                  <Text size="sm">{candidate.score} out of 100</Text>
+                  <Text size="sm" style={{ whiteSpace: 'nowrap' }}>
+                    {candidate.score}
+                    <Text span size="xs" c="dimmed">
+                      /100
+                    </Text>
+                  </Text>
                 </Table.Td>
                 <Table.Td>
                   <Group gap={4}>
@@ -615,8 +652,25 @@ export function Candidates() {
             onChange={(val) => setFilterStatus(val)}
             clearable
           />
+          <Select
+            label="Pipeline stage"
+            placeholder="All stages"
+            data={PIPELINE_STAGES}
+            value={filterStage}
+            onChange={(val) => setFilterStage(val)}
+            clearable
+          />
+          <Select
+            label="Role"
+            placeholder="All roles"
+            data={roleOptions}
+            value={filterRole}
+            onChange={(val) => setFilterRole(val)}
+            searchable
+            clearable
+          />
           <Group justify="flex-end">
-            <Button variant="light" onClick={() => { setFilterStatus(null); closeFilter(); }}>
+            <Button variant="light" onClick={() => { setFilterStatus(null); setFilterStage(null); setFilterRole(null); closeFilter(); }}>
               Clear All
             </Button>
             <Button onClick={closeFilter}>Apply</Button>
