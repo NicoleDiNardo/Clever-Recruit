@@ -30,6 +30,7 @@ import {
   IconBan,
 } from '@tabler/icons-react';
 import type { Candidate } from '../../types';
+import { mockUsers } from '../../data/mockData';
 import {
   getEmploymentColor,
   getJobTitleColor,
@@ -267,15 +268,29 @@ export function CandidateDetail({
         <Text size="xs" fw={600} c="dimmed">
           Owner
         </Text>
-        <Group gap="xs" mt={4}>
-          <Avatar size="xs" radius="xl" color="blue">
-            {candidate.owner?.firstName?.[0] ?? 'J'}
-            {candidate.owner?.lastName?.[0] ?? 'C'}
-          </Avatar>
-          <Text size="sm">
-            {candidate.owner?.email ?? 'jenny@cleverrecruit.com'}
-          </Text>
-        </Group>
+        {(() => {
+          // owner may already be embedded on the record, or only ownerId is
+          // set and needs a lookup — or, for a candidate nobody has claimed
+          // yet (e.g. a fresh public application), neither is set, and that
+          // is a real state to show, not a stand-in for whoever's demoing.
+          const resolvedOwner = candidate.owner ?? mockUsers.find((u) => u.id === candidate.ownerId);
+          if (!resolvedOwner) {
+            return (
+              <Text size="sm" c="dimmed" mt={4}>
+                Unassigned
+              </Text>
+            );
+          }
+          return (
+            <Group gap="xs" mt={4}>
+              <Avatar size="xs" radius="xl" color="blue">
+                {resolvedOwner.firstName?.[0]}
+                {resolvedOwner.lastName?.[0]}
+              </Avatar>
+              <Text size="sm">{resolvedOwner.email}</Text>
+            </Group>
+          );
+        })()}
       </Box>
 
       <Divider />
