@@ -48,7 +48,7 @@ export function Sidebar({ onClose }: SidebarProps) {
 
   return (
     <nav className={classes.navbar} aria-label="Main navigation">
-      <Stack gap={rem(4)} mt="md" px="sm" style={{ flex: 1 }}>
+      <Stack gap={rem(6)} mt="md" px="sm" style={{ flex: 1 }}>
         {visibleMain.map((item) => (
           <NavItemButton
             key={item.path}
@@ -62,7 +62,7 @@ export function Sidebar({ onClose }: SidebarProps) {
         ))}
       </Stack>
       <Divider mx="sm" />
-      <Stack gap={rem(4)} mb="md" mt="sm" px="sm">
+      <Stack gap={rem(6)} mb="md" mt="sm" px="sm">
         {visibleBottom.map((item) => (
           <NavItemButton
             key={item.path}
