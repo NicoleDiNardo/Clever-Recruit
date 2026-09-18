@@ -18,6 +18,7 @@ import {
   Divider,
   Anchor,
   ThemeIcon,
+  Modal,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import {
@@ -73,6 +74,20 @@ export function Pipeline() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [dragCandidateId, setDragCandidateId] = useState<string | null>(null);
   const [dragOverStage, setDragOverStage] = useState<string | null>(null);
+  /* Reject (single or bulk) and every bulk action go through this confirm
+     step rather than applying on click — matching the confirm-modal
+     Candidates/index.tsx already uses for a single reject, and flow 19's
+     explicit requirement that a bulk action states exactly how many
+     records will be affected before it runs. Only the *kind* and its
+     target stage are stored, not a snapshot of which candidates — the
+     modal recomputes the live target set from current state each render,
+     so if the selection stops matching between opening the modal and
+     confirming, Confirm disables itself with a reason instead of quietly
+     acting on stale data (the "selection becomes empty by confirm time"
+     edge case). */
+  const [confirm, setConfirm] = useState<
+    { kind: 'reject-one'; candidateId: string } | { kind: 'bulk-move'; stage: string } | { kind: 'bulk-reject' } | null
+  >(null);
 
   const job = useMemo(() => (jobId ? mockJobs.find((j) => j.id === jobId) : undefined), [jobId]);
 
@@ -224,6 +239,67 @@ export function Pipeline() {
     moveOne(candidate, stage);
   };
 
+  // Recomputed fresh from live state on every render — never from a
+  // snapshot taken when the modal opened — so a selection that's changed
+  // out from under the confirm step is caught here, not acted on blindly.
+  const confirmCandidate =
+    confirm?.kind === 'reject-one' ? candidates.find((c) => c.id === confirm.candidateId) : undefined;
+  const confirmTargets =
+    confirm?.kind === 'bulk-move'
+      ? selectedCandidates.filter((c) => c.stage !== confirm.stage)
+      : confirm?.kind === 'bulk-reject'
+        ? selectedCandidates.filter((c) => c.stage !== 'rejected')
+        : [];
+  const confirmDisabledReason =
+    confirm?.kind === 'reject-one' && !confirmCandidate
+      ? "This candidate is no longer in the list."
+      : (confirm?.kind === 'bulk-move' || confirm?.kind === 'bulk-reject') && confirmTargets.length === 0
+        ? 'Your selection no longer includes anyone this would change.'
+        : null;
+
+  const runConfirm = () => {
+    if (!confirm || confirmDisabledReason) return;
+    if (confirm.kind === 'reject-one' && confirmCandidate) {
+      rejectOne(confirmCandidate);
+    } else if (confirm.kind === 'bulk-move') {
+      handleBulkMove(confirm.stage);
+    } else if (confirm.kind === 'bulk-reject') {
+      handleBulkReject();
+    }
+    setConfirm(null);
+  };
+
+  const confirmCopy =
+    confirm?.kind === 'reject-one'
+      ? {
+          title: 'Reject candidate?',
+          body: confirmCandidate
+            ? `${candidateName(confirmCandidate)} will be marked rejected. You can undo this from the toast right after.`
+            : confirmDisabledReason,
+          confirmLabel: 'Reject',
+        }
+      : confirm?.kind === 'bulk-move'
+        ? {
+            title: 'Move candidates?',
+            body: confirmDisabledReason
+              ? confirmDisabledReason
+              : `${confirmTargets.length} candidate${confirmTargets.length === 1 ? '' : 's'} will move to ${
+                  BOARD_STAGES.find((s) => s.value === confirm.stage)?.label ?? confirm.stage
+                }.`,
+            confirmLabel: 'Move',
+          }
+        : confirm?.kind === 'bulk-reject'
+          ? {
+              title: 'Reject candidates?',
+              body: confirmDisabledReason
+                ? confirmDisabledReason
+                : `${confirmTargets.length} candidate${
+                    confirmTargets.length === 1 ? '' : 's'
+                  } will be marked rejected. You can undo this from the toast right after.`,
+              confirmLabel: 'Reject',
+            }
+          : null;
+
   if (jobNotFound) {
     return (
       <EmptyState
@@ -237,6 +313,7 @@ export function Pipeline() {
   }
 
   return (
+    <>
     <Box>
       <Flex justify="space-between" align="flex-start" mb="lg" wrap="wrap" gap="md">
         <div>
@@ -298,7 +375,7 @@ export function Pipeline() {
                         <Menu.Item
                           key={s.value}
                           disabled={count === 0}
-                          onClick={() => handleBulkMove(s.value)}
+                          onClick={() => setConfirm({ kind: 'bulk-move', stage: s.value })}
                         >
                           {s.label}
                           {count === 0 && (
@@ -319,7 +396,7 @@ export function Pipeline() {
                   color="red"
                   leftSection={<IconBan size={14} />}
                   disabled={selectedCandidates.every((c) => c.stage === 'rejected')}
-                  onClick={handleBulkReject}
+                  onClick={() => setConfirm({ kind: 'bulk-reject' })}
                 >
                   Reject
                 </Button>
@@ -484,7 +561,7 @@ export function Pipeline() {
                                       <Menu.Item
                                         color="red"
                                         leftSection={<IconBan size={14} />}
-                                        onClick={() => rejectOne(candidate)}
+                                        onClick={() => setConfirm({ kind: 'reject-one', candidateId: candidate.id })}
                                       >
                                         Reject
                                       </Menu.Item>
@@ -513,5 +590,24 @@ export function Pipeline() {
         </Box>
       )}
     </Box>
+
+    <Modal opened={confirm !== null} onClose={() => setConfirm(null)} title={confirmCopy?.title} centered>
+      <Text size="sm" mb="lg">
+        {confirmCopy?.body}
+      </Text>
+      <Group justify="flex-end" gap="sm">
+        <Button variant="subtle" color="gray" onClick={() => setConfirm(null)}>
+          Cancel
+        </Button>
+        <Button
+          color={confirm?.kind === 'bulk-move' ? 'blue' : 'red'}
+          disabled={Boolean(confirmDisabledReason)}
+          onClick={runConfirm}
+        >
+          {confirmCopy?.confirmLabel ?? 'Confirm'}
+        </Button>
+      </Group>
+    </Modal>
+    </>
   );
 }
