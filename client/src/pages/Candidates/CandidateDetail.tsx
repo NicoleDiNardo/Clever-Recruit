@@ -35,6 +35,7 @@ import {
   getEmploymentColor,
   getJobTitleColor,
   getStageColor,
+  PIPELINE_STAGE_OPTIONS,
 } from '../../utils/statusColors';
 
 interface CandidateDetailProps {
@@ -55,16 +56,7 @@ interface CandidateDetailProps {
   onAddFeedback?: (recommendation: 'yes' | 'no' | 'maybe', comment: string) => void;
 }
 
-const STAGE_OPTIONS = [
-  { value: 'applied', label: 'Applied' },
-  { value: 'screening', label: 'Screening' },
-  { value: 'interview', label: 'Interview' },
-  { value: 'assessment', label: 'Assessment' },
-  { value: 'offer', label: 'Offer' },
-  { value: 'hired', label: 'Hired' },
-  { value: 'rejected', label: 'Rejected' },
-  { value: 'withdrawn', label: 'Withdrawn' },
-];
+const STAGE_OPTIONS = PIPELINE_STAGE_OPTIONS;
 
 const RECOMMENDATION_OPTIONS = [
   { value: 'yes', label: 'Yes — move forward' },

@@ -46,18 +46,15 @@ import {
   getStageColor,
   getStatusColor,
   getJobTitleColor,
+  PIPELINE_STAGE_OPTIONS,
 } from '../../utils/statusColors';
 
 
-const PIPELINE_STAGES = [
-  { value: 'applied', label: 'Applied' },
-  { value: 'screening', label: 'Screening' },
-  { value: 'interview', label: 'Interview' },
-  { value: 'assessment', label: 'Assessment' },
-  { value: 'offer', label: 'Offer' },
-  { value: 'hired', label: 'Hired' },
-  { value: 'rejected', label: 'Rejected' },
-];
+/* Was its own local copy, missing 'withdrawn' — a withdrawn candidate
+   couldn't be filtered to and showed no label in this dropdown. Now the
+   one shared list (utils/statusColors.ts) also used by the candidate
+   drawer's stage picker and the Pipeline board. */
+const PIPELINE_STAGES = PIPELINE_STAGE_OPTIONS;
 
 export function Candidates() {
   const [searchParams, setSearchParams] = useSearchParams();

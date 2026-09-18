@@ -8,6 +8,7 @@ import {
   IconChartBar,
   IconSettings,
   IconShieldLock,
+  IconLayoutKanban,
 } from '@tabler/icons-react';
 import type { Role } from '../types';
 
@@ -29,6 +30,7 @@ export interface NavItem {
 export const mainNavItems: NavItem[] = [
   { icon: IconDashboard, label: 'Dashboard', path: '/dashboard' },
   { icon: IconUsers, label: 'Candidates', path: '/candidates' },
+  { icon: IconLayoutKanban, label: 'Pipeline', path: '/pipeline' },
   { icon: IconBriefcase, label: 'Jobs', path: '/jobs', roles: ['recruiter', 'admin'] },
   { icon: IconBuilding, label: 'Companies', path: '/companies', roles: ['recruiter', 'admin'] },
   { icon: IconUsersGroup, label: 'Team', path: '/team', roles: ['recruiter', 'admin'] },

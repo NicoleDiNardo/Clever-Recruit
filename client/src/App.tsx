@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { AppLayout } from './components/AppLayout';
 import { Dashboard } from './pages/Dashboard';
 import { Candidates } from './pages/Candidates';
+import { Pipeline } from './pages/Pipeline';
 import { Jobs } from './pages/Jobs';
 import { Companies } from './pages/Companies';
 import { Team } from './pages/Team';
@@ -79,6 +80,11 @@ export function App() {
       >
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/candidates" element={<Candidates />} />
+        {/* Open to every authenticated role, same as /candidates — a hiring
+            manager's ability to move a candidate is gated inside the page
+            itself (shortlist/reject only), not at the route level. */}
+        <Route path="/pipeline" element={<Pipeline />} />
+        <Route path="/pipeline/:jobId" element={<Pipeline />} />
         {/* Job/company/team/report management is recruiter and admin work —
             AUD-P0-01. A hiring manager hitting these by URL sees a real
             Permission denied state, not the page or a silent redirect. */}
