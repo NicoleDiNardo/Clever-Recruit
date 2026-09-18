@@ -138,7 +138,11 @@ export interface Application {
   candidateId: string;
   jobId: string;
   jobTitle: string;
+  applicantName: string;
   email: string;
+  phone?: string;
+  coverNote?: string;
+  cvFileName?: string;
   createdAt: string;
 }
 

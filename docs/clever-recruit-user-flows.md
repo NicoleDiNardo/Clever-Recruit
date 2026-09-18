@@ -13,22 +13,22 @@ Goal: update role details. Start: job detail. Preconditions: recruiter/admin own
 ### 3. Recruiter previews and publishes a job [New scope]
 Goal: confirm a role reads correctly before it's public, then make it live. Start: draft job detail. Preconditions: draft job with required fields complete. Steps: click Preview → view exactly what a candidate would see (rendered in the public job-detail layout) → return to edit, or Publish. Feedback: preview clearly labelled "Preview — not yet published"; publish button shows loading, then success toast + status badge changes to Published. Decision: publish now vs. keep editing. Alternative: close preview without publishing. Validation: publish blocked if required fields are missing, with a clear list of what's missing. Error: publish failure keeps job in draft, shows retry. Success: job appears on public `/jobs`. Analytics: `job_previewed`, `job_published`.
 
-### 4. Candidate discovers a job [New scope]
+### 4. Candidate discovers a job [Implemented]
 Goal: find a role worth applying to. Start: public `/jobs`. Preconditions: none. Steps: browse or filter (location/type) or search by keyword → scan list. Feedback: result count updates live; loading skeleton while fetching. Decision: refine filters vs. open a result. Alternative: no results → empty/no-results state with a "clear filters" action. Validation: n/a. Error: fetch failure → retry state. Success: candidate opens a job. Analytics: `jobs_viewed`, `jobs_filtered`, `jobs_searched`.
 
-### 5. Candidate views a job [New scope]
+### 5. Candidate views a job [Implemented]
 Goal: decide whether to apply. Start: `/jobs/:jobId`. Preconditions: job exists. Steps: read description, requirements, location/salary → decide. Feedback: none needed beyond page load. Decision: apply vs. leave. Alternative: job closed/unpublished since the link was shared → clear "no longer accepting applications" state, not a 404. Validation: n/a. Error: job not found → distinct not-found state with a link back to the directory. Success: candidate proceeds to apply. Analytics: `job_detail_viewed`.
 
-### 6. Candidate applies [New scope]
+### 6. Candidate applies [Implemented — network-failure/retry not built, no real backend to fail against; see product-definition.md]
 Goal: submit an application. Start: job detail → Apply. Preconditions: job is open/published. Steps: fill name, email, phone, upload CV, optional note → submit. Feedback: inline field validation; submit button loading state; disabled while submitting to prevent double-submit. Decision: submit vs. cancel. Alternative: candidate has already applied to this job (see flow 20 territory) — detected by email match, shown as "You've already applied to this role" with a link to check status, not a silent duplicate. Validation: required name/email/CV; valid email format; valid phone format if provided. Error handling: submit failure (network/timeout) keeps form data intact, shows retry. Success: redirected to confirmation. Analytics: `application_started`, `application_submitted`, `application_failed`.
 
-### 7. Candidate uploads a CV [New scope]
+### 7. Candidate uploads a CV [Implemented — file is validated and named client-side only, never uploaded or stored anywhere]
 Goal: attach a CV to the application. Start: within the application form. Preconditions: application form open. Steps: select or drag a file → see filename/size confirmation → optionally replace. Feedback: upload progress if large; success checkmark; error message inline, not blocking the rest of the form. Decision: keep vs. replace file. Alternative: no CV available — form still submits if CV isn't strictly required for this job (an **[Assumption]**: CV required by default, but this is a job-level toggle a recruiter could set — flagged as Future scope refinement, not built now; default behaviour is CV required). Validation: accepted types (PDF/DOC/DOCX), max size (e.g. 5MB). Error handling: unsupported type → specific message naming accepted types; too large → specific message with the limit; upload failure → retry without losing other form fields. Success: file attached, form remains editable. Analytics: `cv_upload_attempted`, `cv_upload_succeeded`, `cv_upload_failed`.
 
-### 8. Candidate receives application confirmation [New scope]
+### 8. Candidate receives application confirmation [Implemented]
 Goal: know the application went through and what happens next. Start: redirected post-submit. Preconditions: successful submission. Steps: read confirmation, note the status-check path. Feedback: clear success state (not just a toast — a full confirmation page, since this is the moment of highest candidate anxiety). Decision: browse more jobs vs. leave. Alternative: n/a. Validation: n/a. Error: n/a (this page only renders after a verified success). Success: candidate understands next steps. Analytics: `application_confirmation_viewed`.
 
-### 9. Candidate checks application status [New scope]
+### 9. Candidate checks application status [Implemented]
 Goal: find out where they stand without contacting anyone. Start: `/status`. Preconditions: has application reference + email (given at confirmation). Steps: enter email + reference → view status. Feedback: loading state; plain-language status, not internal jargon. Decision: n/a. Alternative: wrong combination → generic "we couldn't find a matching application" (doesn't confirm/deny an email is in the system). Validation: both fields required. Error: lookup failure → retry state. Success: status shown. Analytics: `status_lookup_attempted`, `status_lookup_succeeded`.
 
 ### 10. Recruiter searches and filters candidates [Implemented]

@@ -9,6 +9,7 @@ import { theme } from './theme';
 import { UserProvider } from './context/UserContext';
 import { CandidatesProvider } from './context/CandidatesContext';
 import { OrgUsersProvider } from './context/OrgUsersContext';
+import { ApplicationsProvider } from './context/ApplicationsContext';
 import { isEmbedMode } from './hooks/useEmbedMode';
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
@@ -36,9 +37,11 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <BrowserRouter>
           <UserProvider>
             <CandidatesProvider>
-              <OrgUsersProvider>
-                <App />
-              </OrgUsersProvider>
+              <ApplicationsProvider>
+                <OrgUsersProvider>
+                  <App />
+                </OrgUsersProvider>
+              </ApplicationsProvider>
             </CandidatesProvider>
           </UserProvider>
         </BrowserRouter>

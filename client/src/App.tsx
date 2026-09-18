@@ -11,6 +11,12 @@ import { Settings } from './pages/Settings';
 import { Login } from './pages/Login';
 import { NotFound } from './pages/NotFound';
 import { AdminUsers } from './pages/Admin/Users';
+import { CareersLayout } from './pages/Careers/CareersLayout';
+import { Directory } from './pages/Careers/Directory';
+import { JobDetail } from './pages/Careers/JobDetail';
+import { Apply } from './pages/Careers/Apply';
+import { Confirmation } from './pages/Careers/Confirmation';
+import { Status } from './pages/Careers/Status';
 import { RequireRole } from './components/RequireRole';
 import { useUser } from './context/UserContext';
 import { isEmbedMode } from './hooks/useEmbedMode';
@@ -30,10 +36,40 @@ function LoginRoute() {
   return <Login />;
 }
 
+/**
+ * The public careers site lives under /careers/* rather than the IA doc's
+ * literal /jobs, /jobs/:jobId, etc. — those paths already belong to the
+ * authenticated, internal Jobs management screen (see Route "/jobs" below),
+ * and React Router can't route the same path two different ways depending
+ * on auth state. /careers/* is the resolution; documented here and in the
+ * IA doc rather than silently diverging from the spec.
+ */
+function RootRedirect() {
+  const { isAuthenticated } = useUser();
+  return <Navigate to={isAuthenticated ? '/dashboard' : '/careers'} replace />;
+}
+
 export function App() {
   return (
     <Routes>
+      <Route path="/" element={<RootRedirect />} />
       <Route path="/login" element={<LoginRoute />} />
+
+      {/* Public, unauthenticated candidate-facing site — flows 4-9. */}
+      <Route element={<CareersLayout />}>
+        <Route path="/careers" element={<Directory />} />
+        <Route path="/careers/status" element={<Status />} />
+        <Route path="/careers/status/:applicationId" element={<Status />} />
+        <Route path="/careers/apply/:applicationId/confirmation" element={<Confirmation />} />
+        <Route path="/careers/:jobId" element={<JobDetail />} />
+        <Route path="/careers/:jobId/apply" element={<Apply />} />
+        {/* Any other /careers/* path (typo, stale link) stays on the public
+            site and lands on the directory, rather than falling through to
+            the authenticated shell's catch-all below and bouncing an
+            unauthenticated visitor to /login. */}
+        <Route path="/careers/*" element={<Navigate to="/careers" replace />} />
+      </Route>
+
       <Route
         element={
           <ProtectedRoute>
@@ -41,7 +77,6 @@ export function App() {
           </ProtectedRoute>
         }
       >
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/candidates" element={<Candidates />} />
         {/* Job/company/team/report management is recruiter and admin work —

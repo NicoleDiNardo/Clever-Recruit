@@ -4,15 +4,24 @@ Status labels: **[Implemented]** · **[New scope]** · **[Future scope]**. This 
 
 ## Sitemap overview
 
+**Implementation note (Phase 13):** the paths below originally read `/jobs`,
+`/jobs/:jobId`, etc. at the root. That collides with the existing
+*authenticated* `/jobs` (internal job management, further down this sitemap)
+— React Router can't route one path two different ways depending on auth
+state, and the two are genuinely different pages with different data
+(published-only vs. all statuses) and different layouts (public shell vs.
+AppShell). Implemented under `/careers/*` instead; corrected here so the
+doc matches the code rather than silently diverging from it.
+
 ```
 Public (unauthenticated)                    [New scope, except /login]
-├── / (redirects → /jobs)                   [New scope]
-├── /jobs                    Jobs directory [New scope]
-├── /jobs/:jobId              Job detail    [New scope]
-├── /jobs/:jobId/apply        Application   [New scope]
-├── /apply/:applicationId/confirmation      [New scope]
-├── /status                   Status lookup [New scope]
-├── /status/:applicationId    Application status [New scope]
+├── / (redirects → /careers)                [New scope]
+├── /careers                  Jobs directory [New scope]
+├── /careers/:jobId           Job detail    [New scope]
+├── /careers/:jobId/apply     Application   [New scope]
+├── /careers/apply/:applicationId/confirmation [New scope]
+├── /careers/status                   Status lookup [New scope]
+├── /careers/status/:applicationId    Application status [New scope]
 └── /login                    Login         [Implemented]
 
 Authenticated — recruiter & hiring manager
@@ -83,20 +92,20 @@ A permission-denied attempt (e.g. hiring manager navigating to `/jobs/new` via a
 
 For every route: **Role · Purpose · Entry points · Primary action · Secondary actions · Required data · Permission requirements · Loading / Empty / Error / Success states · Exit points.**
 
-### `/jobs` — Public jobs directory [New scope]
-Role: Candidate (unauthenticated). Purpose: discover open roles. Entry: portfolio link, direct share, search engine (illustrative). Primary action: open a job. Secondary: filter by location/type, search by keyword. Required data: published jobs only (`status = published`, never draft). Permission: none. Loading: skeleton cards. Empty: "No open roles right now" with a note to check back. Error: retry affordance. Success: list renders. Exit: job detail, or leave.
+### `/careers` — Public jobs directory [Implemented]
+Role: Candidate (unauthenticated). Purpose: discover open roles. Entry: portfolio link, direct share, search engine (illustrative). Primary action: open a job. Secondary: filter by type, search by keyword/company/location. Required data: `status = 'open'` jobs only, never draft/paused/closed. Permission: none. Loading: skeleton cards. Empty: "No open roles right now" with a note to check back — distinct from a no-results-for-this-search state, which offers "clear filters" instead. Success: list renders. Exit: job detail, or leave.
 
-### `/jobs/:jobId` — Public job detail [New scope]
-Role: Candidate. Purpose: understand the role and decide to apply. Entry: from directory, or direct link. Primary action: Apply. Secondary: back to directory, share. Required data: one published job; a closed/unpublished job shows a clear "this role is no longer accepting applications" state rather than a 404. Permission: none. States: loading skeleton, error (not found → distinct from closed), success. Exit: application form, or back.
+### `/careers/:jobId` — Public job detail [Implemented]
+Role: Candidate. Purpose: understand the role and decide to apply. Entry: from directory, or direct link. Primary action: Apply. Secondary: back to directory, check status. Required data: one job; a closed/paused job shows a clear "this role is no longer accepting applications" state rather than a 404. Permission: none. States: loading skeleton, not-found (distinct from closed/paused), success. Exit: application form, or back.
 
-### `/jobs/:jobId/apply` — Application form [New scope]
-Role: Candidate. Purpose: submit an application. Entry: from job detail only (no direct deep link into an empty form without job context — if accessed directly, redirect to job detail). Primary action: Submit application. Secondary: cancel/back (with an "are you sure, you'll lose this" confirmation once any field is filled — prevents accidental data loss per the brief's rules). Required data: name, email, phone, CV/file upload, optional cover note. Permission: none. States: field-level validation errors (invalid email/phone, missing required field, unsupported file type, file too large), submit-in-progress (disabled button + spinner), submit failure (network/timeout — retry without losing entered data), success → redirect to confirmation. Exit: confirmation page.
+### `/careers/:jobId/apply` — Application form [Implemented]
+Role: Candidate. Purpose: submit an application. Entry: from job detail only — the route requires `:jobId`, so there's no context-less empty form to land on directly. Primary action: Submit application. Required data: name, email, phone (optional), CV/résumé upload, optional cover note. Permission: none. States: field-level validation (invalid email/phone, missing name/CV, unsupported file type, file over 5MB), duplicate-application detection by email match on this job (shown as an inline "you've already applied" notice with a link to status — not a silent second record), submit-in-progress (disabled fields + loading button), success → redirect to confirmation. Exit: confirmation page. **Not implemented:** real network failure/retry (there's no backend to fail against in this client-only demo — see product-definition.md) and the unsaved-changes-on-cancel confirmation.
 
-### `/apply/:applicationId/confirmation` [New scope]
-Role: Candidate. Purpose: confirm the application was received and set expectation for next steps. Primary action: note the status-check path (email + reference, or a direct link if issued). Secondary: browse more jobs. Required data: application id, job title, submitted timestamp. Permission: only reachable immediately post-submit or via a valid link — a stale/invalid id shows an error state, not another candidate's data. Exit: status page or directory.
+### `/careers/apply/:applicationId/confirmation` [Implemented]
+Role: Candidate. Purpose: confirm the application was received and set expectation for next steps. Primary action: copy the application reference (id) needed for a later status check. Secondary: browse more jobs, or jump straight to status lookup. Required data: application id, job title, applicant first name, submitted timestamp. Permission: reachable via a valid id only — a stale/invalid id shows a distinct "couldn't find that application" state, not another candidate's data (no email check on this page specifically, matching the original spec — it discloses only what the candidate themselves just submitted). Exit: status page or directory.
 
-### `/status` and `/status/:applicationId` — Status lookup [New scope]
-Role: Candidate. Purpose: check where an application stands without an account. Primary action: look up by email + application reference. States: not-found (wrong reference/email combination — generic message, doesn't confirm/deny whether an email exists, for basic privacy hygiene), loading, success (shows current stage in plain language, e.g. "In review" / "Interview scheduled" / "Not moving forward" / "Offer extended" — never exposes internal stage jargon like raw pipeline keys). Exit: directory, or close.
+### `/careers/status` and `/careers/status/:applicationId` — Status lookup [Implemented]
+Role: Candidate. Purpose: check where an application stands without an account. Primary action: look up by email + application reference (both required even when the reference arrives pre-filled from a confirmation-page link). States: not-found (wrong reference/email combination — one generic message, doesn't distinguish which field was wrong, for basic privacy hygiene), loading, success (plain-language status via a dedicated label map — e.g. "In review" / "Interview stage" / "Not moving forward" / "Offer extended" — never the raw internal pipeline key). Exit: directory, or close.
 
 ### `/dashboard` [Implemented, role-aware content New scope]
 Role: Recruiter, hiring manager, admin. Purpose: orient — what needs attention now. Primary action varies by role (recruiter: review new applicants; hiring manager: review candidates awaiting their feedback). Required data: role-scoped counts and recent activity. States: loading skeleton (existing pattern extended), empty (a brand-new org/recruiter with zero jobs — currently not handled, since mock data always has jobs — this is a real empty state to design and build), error (data fetch failure), success.

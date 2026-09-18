@@ -12,11 +12,13 @@ import {
   Group,
   Divider,
   Center,
+  rem,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
-import { useNavigate, Navigate } from 'react-router-dom';
+import { useNavigate, Navigate, Link } from 'react-router-dom';
 import { useUser } from '../../context/UserContext';
+import { IconArrowLeft } from '@tabler/icons-react';
 
 const DEMO_ACCOUNTS = [
   { userId: '1', label: 'Jenny — Recruiter', description: 'Full access: jobs, candidates, pipeline.' },
@@ -76,12 +78,21 @@ export function Login() {
         padding: 16,
       }}
     >
-      <Card
+      <Stack w="100%" maw={440} gap="md">
+        <Anchor
+          component={Link}
+          to="/careers"
+          size="sm"
+          c="blue.7"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: rem(4) }}
+        >
+          <IconArrowLeft size={14} /> Back to careers site
+        </Anchor>
+        <Card
         shadow="xl"
         padding={40}
         radius="lg"
         w="100%"
-        maw={440}
       >
         <Center mb="xl">
           <Group gap="xs">
@@ -170,6 +181,7 @@ export function Login() {
           ))}
         </Stack>
       </Card>
+      </Stack>
     </Box>
   );
 }
