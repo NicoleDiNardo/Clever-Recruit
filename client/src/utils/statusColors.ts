@@ -19,6 +19,9 @@ export const STAGE_COLORS: Record<string, MantineColor> = {
   offer: 'orange',
   hired: 'green',
   rejected: 'red',
+  /* Candidate-initiated, not recruiter-initiated — deliberately not red,
+     so a withdrawal doesn't read as a rejection in the pipeline view. */
+  withdrawn: 'gray',
 };
 
 export function getStageColor(stage?: string): MantineColor {

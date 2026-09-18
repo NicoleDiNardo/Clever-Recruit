@@ -18,9 +18,15 @@ import { notifications } from '@mantine/notifications';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { useUser } from '../../context/UserContext';
 
+const DEMO_ACCOUNTS = [
+  { userId: '1', label: 'Jenny — Recruiter', description: 'Full access: jobs, candidates, pipeline.' },
+  { userId: '5', label: 'Alex — Hiring manager', description: 'Reviews, shortlists and leaves feedback.' },
+  { userId: '3', label: 'Sarah — Admin', description: 'Everything a recruiter has, plus user management.' },
+];
+
 export function Login() {
   const navigate = useNavigate();
-  const { login, isAuthenticated } = useUser();
+  const { login, loginAs, isAuthenticated } = useUser();
 
   const form = useForm({
     initialValues: {
@@ -42,6 +48,12 @@ export function Login() {
     login(values.email, values.password);
     navigate('/dashboard');
   });
+
+  const handleDemoRole = (userId: string, label: string) => {
+    loginAs(userId);
+    notifications.show({ title: 'Signed in', message: `Continuing as ${label}.`, color: 'blue' });
+    navigate('/dashboard');
+  };
 
   const handleSso = (provider: string) => {
     login(`jenny@cleverrecruit.com`, 'demo');
@@ -134,6 +146,29 @@ export function Login() {
             Contact Admin
           </Anchor>
         </Text>
+
+        <Divider label="Try a role — this portfolio demo has no real accounts" labelPosition="center" my="lg" />
+
+        <Stack gap="xs">
+          {DEMO_ACCOUNTS.map((account) => (
+            <Button
+              key={account.userId}
+              variant="default"
+              fullWidth
+              h="auto"
+              py={8}
+              onClick={() => handleDemoRole(account.userId, account.label)}
+            >
+              <Group justify="space-between" wrap="nowrap" w="100%">
+                <Box ta="left">
+                  <Text size="sm" fw={600}>{account.label}</Text>
+                  <Text size="xs" c="dimmed" fw={400}>{account.description}</Text>
+                </Box>
+                <Text size="xs" c="dimmed">Sign in →</Text>
+              </Group>
+            </Button>
+          ))}
+        </Stack>
       </Card>
     </Box>
   );

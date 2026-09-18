@@ -1,10 +1,35 @@
+/**
+ * Recruiter and admin manage jobs/candidates freely. Hiring manager reviews
+ * candidates on jobs they're assigned to and can shortlist/reject/leave
+ * feedback, but can't create jobs or freely move pipeline stages. See
+ * /docs/clever-recruit-information-architecture.md for the full permission
+ * boundary table this type backs.
+ */
+export type Role = 'recruiter' | 'hiring_manager' | 'admin';
+
 export interface User {
   id: string;
   email: string;
   firstName: string;
   lastName: string;
   avatar?: string;
-  role: string;
+  role: Role;
+  createdAt: string;
+}
+
+/** A User plus invite state, for the admin Users screen only — the rest of
+ *  the app never needs to know whether someone has accepted an invite yet. */
+export interface OrgUser extends User {
+  status: 'active' | 'pending';
+}
+
+/** A hiring manager's structured review of a candidate — flow 17 in the user-flows doc. */
+export interface Feedback {
+  id: string;
+  recommendation: 'yes' | 'no' | 'maybe';
+  comment?: string;
+  authorId: string;
+  authorName: string;
   createdAt: string;
 }
 
@@ -18,6 +43,9 @@ export interface Candidate {
   jobTitle?: string;
   score?: number;
   status: string;
+  /** Pipeline position. 'withdrawn' (candidate-initiated) is distinct from
+   *  'rejected' (recruiter/hiring-manager-initiated) even though both are
+   *  terminal — see edge-cases doc. */
   stage?: string;
   location?: string;
   currentPosition?: string;
@@ -28,6 +56,9 @@ export interface Candidate {
   assignments?: Assignment[];
   notes?: Note[];
   tasks?: Task[];
+  /** Set by a hiring manager flagging a strong candidate — flow 13. */
+  shortlisted?: boolean;
+  feedback?: Feedback[];
   createdAt: string;
   updatedAt: string;
 }
@@ -51,6 +82,8 @@ export interface Job {
   location?: string;
   type?: string;
   salary?: string;
+  /** 'draft' | 'open' | 'paused' | 'closed'. Only 'open' jobs are visible on
+   *  the public careers site — see AUD-P1-03. */
   status: string;
   companyId: string;
   company?: Company;
@@ -90,6 +123,22 @@ export interface Task {
   candidateId: string;
   assigneeId: string;
   assignee?: User;
+  createdAt: string;
+}
+
+/**
+ * A thin, candidate-facing join between a public applicant and the internal
+ * Candidate record their application created. Looked up by email + id
+ * (the "reference code" a candidate is given at confirmation) rather than
+ * requiring a real account — see product-definition.md's candidate-account
+ * assumption.
+ */
+export interface Application {
+  id: string;
+  candidateId: string;
+  jobId: string;
+  jobTitle: string;
+  email: string;
   createdAt: string;
 }
 

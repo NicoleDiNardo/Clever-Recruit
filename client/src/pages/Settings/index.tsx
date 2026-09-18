@@ -31,6 +31,12 @@ import {
 } from '@tabler/icons-react';
 import { useUser } from '../../context/UserContext';
 
+const ROLE_LABEL: Record<string, string> = {
+  recruiter: 'Recruiter',
+  hiring_manager: 'Hiring manager',
+  admin: 'Admin',
+};
+
 export function Settings() {
   const { colorScheme, setColorScheme } = useMantineColorScheme();
   const { user, updateProfile, setAvatar } = useUser();
@@ -232,7 +238,7 @@ export function Settings() {
                 <Stack gap="sm">
                   <Group justify="space-between">
                     <Text size="sm" c="dimmed">Role</Text>
-                    <Text size="sm" fw={500}>Recruiter</Text>
+                    <Text size="sm" fw={500}>{ROLE_LABEL[user.role] ?? user.role}</Text>
                   </Group>
                   <Divider />
                   <Group justify="space-between">

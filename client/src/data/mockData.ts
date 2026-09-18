@@ -37,6 +37,15 @@ export const mockUsers: User[] = [
     role: 'recruiter',
     createdAt: '2024-03-05T10:00:00Z',
   },
+  {
+    id: '5',
+    email: 'alex@cleverrecruit.com',
+    firstName: 'Alex',
+    lastName: 'Rivera',
+    avatar: undefined,
+    role: 'hiring_manager',
+    createdAt: '2024-04-12T10:00:00Z',
+  },
 ];
 
 const featuredCandidates: Candidate[] = [

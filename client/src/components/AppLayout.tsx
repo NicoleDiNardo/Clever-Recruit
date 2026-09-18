@@ -7,15 +7,9 @@ import {
 } from '@mantine/core';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import { useUser } from '../context/UserContext';
+import { usePermissions } from '../hooks/usePermissions';
+import { mainNavItems, bottomNavItems, visibleNavItems } from '../config/navigation';
 import {
-  IconDashboard,
-  IconUsers,
-  IconBriefcase,
-  IconBuilding,
-  IconUsersGroup,
-  IconCalendarEvent,
-  IconChartBar,
-  IconSettings,
   IconSearch,
   IconBell,
   IconMoonStars,
@@ -32,36 +26,11 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { useEmbedMode } from '../hooks/useEmbedMode';
 
-const mainNavItems = [
-  { icon: IconDashboard, label: 'Dashboard', path: '/dashboard' },
-  { icon: IconUsers, label: 'Candidates', path: '/candidates' },
-  { icon: IconBriefcase, label: 'Jobs', path: '/jobs' },
-  { icon: IconBuilding, label: 'Companies', path: '/companies' },
-  { icon: IconUsersGroup, label: 'Team', path: '/team' },
-  { icon: IconCalendarEvent, label: 'Calendar', path: '/calendar' },
-  { icon: IconChartBar, label: 'Reports', path: '/reports' },
-];
-
-const bottomNavItems = [
-  { icon: IconSettings, label: 'Settings', path: '/settings' },
-];
-
 const initialNotifications = [
   { id: 1, title: 'New candidate applied', description: 'Sarah Connor applied for Senior Developer', time: '5 min ago', read: false, icon: IconUserPlus },
   { id: 2, title: 'Interview scheduled', description: 'Interview with John Smith tomorrow at 10:00 AM', time: '1 hour ago', read: false, icon: IconCalendar },
   { id: 3, title: 'New message', description: 'HR Team left a comment on the job posting', time: '3 hours ago', read: true, icon: IconMessage },
   { id: 4, title: 'Task completed', description: 'Background check for Mike Johnson is done', time: 'Yesterday', read: true, icon: IconCheck },
-];
-
-const searchablePages = [
-  { label: 'Dashboard', path: '/dashboard', icon: IconDashboard },
-  { label: 'Candidates', path: '/candidates', icon: IconUsers },
-  { label: 'Jobs', path: '/jobs', icon: IconBriefcase },
-  { label: 'Companies', path: '/companies', icon: IconBuilding },
-  { label: 'Team', path: '/team', icon: IconUsersGroup },
-  { label: 'Calendar', path: '/calendar', icon: IconCalendarEvent },
-  { label: 'Reports', path: '/reports', icon: IconChartBar },
-  { label: 'Settings', path: '/settings', icon: IconSettings },
 ];
 
 export function AppLayout() {
@@ -79,6 +48,10 @@ export function AppLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useUser();
+  const { role } = usePermissions();
+  const visibleMain = visibleNavItems(mainNavItems, role);
+  const visibleBottom = visibleNavItems(bottomNavItems, role);
+  const searchablePages = [...visibleMain, ...visibleBottom];
 
   const unreadCount = notifList.filter((n) => !n.read).length;
 
@@ -248,7 +221,7 @@ export function AppLayout() {
         {isMobile ? (
           <Stack gap={0} style={{ height: '100%' }}>
             <Stack gap={4} p="sm" style={{ flex: 1 }}>
-              {mainNavItems.map((item) => (
+              {visibleMain.map((item) => (
                 <NavLink
                   key={item.path}
                   label={item.label}
@@ -264,7 +237,7 @@ export function AppLayout() {
             </Stack>
             <Divider />
             <Stack gap={4} p="sm">
-              {bottomNavItems.map((item) => (
+              {visibleBottom.map((item) => (
                 <NavLink
                   key={item.path}
                   label={item.label}

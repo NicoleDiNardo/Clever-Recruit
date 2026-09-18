@@ -1,15 +1,7 @@
 import { Stack, UnstyledButton, Text, rem, Divider } from '@mantine/core';
 import { useLocation, useNavigate } from 'react-router-dom';
-import {
-  IconDashboard,
-  IconUsers,
-  IconBriefcase,
-  IconBuilding,
-  IconUsersGroup,
-  IconCalendarEvent,
-  IconChartBar,
-  IconSettings,
-} from '@tabler/icons-react';
+import { mainNavItems, bottomNavItems, visibleNavItems, type NavItem } from '../config/navigation';
+import { usePermissions } from '../hooks/usePermissions';
 import classes from './Sidebar.module.css';
 
 interface NavItemProps {
@@ -25,7 +17,7 @@ interface NavItemProps {
   onClick: () => void;
 }
 
-function NavItem({ icon: Icon, label, active, onClick }: NavItemProps) {
+function NavItemButton({ icon: Icon, label, active, onClick }: NavItemProps) {
   return (
     <UnstyledButton
       onClick={onClick}
@@ -42,20 +34,6 @@ function NavItem({ icon: Icon, label, active, onClick }: NavItemProps) {
   );
 }
 
-const mainNavItems = [
-  { icon: IconDashboard, label: 'Dashboard', path: '/dashboard' },
-  { icon: IconUsers, label: 'Candidates', path: '/candidates' },
-  { icon: IconBriefcase, label: 'Jobs', path: '/jobs' },
-  { icon: IconBuilding, label: 'Companies', path: '/companies' },
-  { icon: IconUsersGroup, label: 'Team', path: '/team' },
-  { icon: IconCalendarEvent, label: 'Calendar', path: '/calendar' },
-  { icon: IconChartBar, label: 'Reports', path: '/reports' },
-];
-
-const bottomNavItems = [
-  { icon: IconSettings, label: 'Settings', path: '/settings' },
-];
-
 interface SidebarProps {
   onClose: () => void;
 }
@@ -63,12 +41,16 @@ interface SidebarProps {
 export function Sidebar({ onClose }: SidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
+  const { role } = usePermissions();
+
+  const visibleMain: NavItem[] = visibleNavItems(mainNavItems, role);
+  const visibleBottom: NavItem[] = visibleNavItems(bottomNavItems, role);
 
   return (
     <nav className={classes.navbar} aria-label="Main navigation">
       <Stack gap={rem(4)} mt="md" px="sm" style={{ flex: 1 }}>
-        {mainNavItems.map((item) => (
-          <NavItem
+        {visibleMain.map((item) => (
+          <NavItemButton
             key={item.path}
             {...item}
             active={location.pathname === item.path}
@@ -81,8 +63,8 @@ export function Sidebar({ onClose }: SidebarProps) {
       </Stack>
       <Divider mx="sm" />
       <Stack gap={rem(4)} mb="md" mt="sm" px="sm">
-        {bottomNavItems.map((item) => (
-          <NavItem
+        {visibleBottom.map((item) => (
+          <NavItemButton
             key={item.path}
             {...item}
             active={location.pathname === item.path}
