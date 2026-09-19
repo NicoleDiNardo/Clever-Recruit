@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Container, Stack, Skeleton, Anchor } from '@mantine/core';
 import { IconArrowLeft, IconLock, IconMoodSad } from '@tabler/icons-react';
-import { mockJobs } from '../../data/mockData';
+import { useJobs } from '../../context/JobsContext';
 import { EmptyState } from '../../components/EmptyState';
 import { JobPostingView } from '../../components/JobPostingView';
 
@@ -19,7 +19,8 @@ export function JobDetail() {
     return () => clearTimeout(t);
   }, [jobId]);
 
-  const job = mockJobs.find((j) => j.id === jobId);
+  const { jobs } = useJobs();
+  const job = jobs.find((j) => j.id === jobId);
 
   return (
     <Container size="sm" px="md" py="xl">

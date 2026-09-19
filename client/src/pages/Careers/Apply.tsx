@@ -16,7 +16,7 @@ import {
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { IconArrowLeft, IconUpload, IconInfoCircle, IconFile, IconMoodSad } from '@tabler/icons-react';
-import { mockJobs } from '../../data/mockData';
+import { useJobs } from '../../context/JobsContext';
 import { useApplications } from '../../context/ApplicationsContext';
 import { useCandidates } from '../../context/CandidatesContext';
 import { EmptyState } from '../../components/EmptyState';
@@ -39,7 +39,8 @@ export function Apply() {
   const [submitting, setSubmitting] = useState(false);
   const [duplicateOf, setDuplicateOf] = useState<Application | null>(null);
 
-  const job = mockJobs.find((j) => j.id === jobId);
+  const { jobs } = useJobs();
+  const job = jobs.find((j) => j.id === jobId);
 
   const form = useForm({
     initialValues: {

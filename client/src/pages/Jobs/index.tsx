@@ -36,14 +36,14 @@ import {
 } from '@tabler/icons-react';
 import { mockCompanies } from '../../data/mockData';
 import type { Job } from '../../types';
-import { mockJobs as initialJobs } from '../../data/mockData';
 import { useCandidates } from '../../context/CandidatesContext';
+import { useJobs } from '../../context/JobsContext';
 import { EmptyState } from '../../components/EmptyState';
 import { JobPreviewModal } from './JobPreviewModal';
 
 export function Jobs() {
   const { candidates } = useCandidates();
-  const [jobs, setJobs] = useState<Job[]>(initialJobs);
+  const { jobs, setJobs } = useJobs();
   const [search, setSearch] = useState('');
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [detailOpened, { open: openDetail, close: closeDetail }] = useDisclosure(false);

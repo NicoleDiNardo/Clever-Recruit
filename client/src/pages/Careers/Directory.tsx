@@ -14,7 +14,7 @@ import {
   SimpleGrid,
 } from '@mantine/core';
 import { IconSearch, IconMapPin, IconBriefcase, IconBuilding } from '@tabler/icons-react';
-import { mockJobs } from '../../data/mockData';
+import { useJobs } from '../../context/JobsContext';
 import { EmptyState } from '../../components/EmptyState';
 import type { Job } from '../../types';
 
@@ -31,7 +31,8 @@ export function Directory() {
     return () => clearTimeout(t);
   }, []);
 
-  const openJobs = useMemo(() => mockJobs.filter((j) => j.status === 'open'), []);
+  const { jobs } = useJobs();
+  const openJobs = useMemo(() => jobs.filter((j) => j.status === 'open'), [jobs]);
 
   const types = useMemo(
     () => Array.from(new Set(openJobs.map((j) => j.type).filter((t): t is string => Boolean(t)))),
