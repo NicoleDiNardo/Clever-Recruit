@@ -10,6 +10,7 @@ import { UserProvider } from './context/UserContext';
 import { CandidatesProvider } from './context/CandidatesContext';
 import { OrgUsersProvider } from './context/OrgUsersContext';
 import { ApplicationsProvider } from './context/ApplicationsContext';
+import { InterviewsProvider } from './context/InterviewsContext';
 import { isEmbedMode } from './hooks/useEmbedMode';
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
@@ -38,9 +39,11 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           <UserProvider>
             <CandidatesProvider>
               <ApplicationsProvider>
-                <OrgUsersProvider>
-                  <App />
-                </OrgUsersProvider>
+                <InterviewsProvider>
+                  <OrgUsersProvider>
+                    <App />
+                  </OrgUsersProvider>
+                </InterviewsProvider>
               </ApplicationsProvider>
             </CandidatesProvider>
           </UserProvider>

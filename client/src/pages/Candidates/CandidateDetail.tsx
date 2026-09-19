@@ -28,6 +28,7 @@ import {
   IconStar,
   IconStarFilled,
   IconBan,
+  IconCalendarTime,
 } from '@tabler/icons-react';
 import type { Candidate } from '../../types';
 import { mockUsers } from '../../data/mockData';
@@ -54,6 +55,9 @@ interface CandidateDetailProps {
   onShortlist?: () => void;
   onReject?: () => void;
   onAddFeedback?: (recommendation: 'yes' | 'no' | 'maybe', comment: string) => void;
+  /** Recruiter/admin only — AUD-P1-02. Opens the shared scheduling modal
+   *  pre-filled with this candidate. */
+  onScheduleInterview?: () => void;
 }
 
 const STAGE_OPTIONS = PIPELINE_STAGE_OPTIONS;
@@ -79,6 +83,7 @@ export function CandidateDetail({
   onShortlist,
   onReject,
   onAddFeedback,
+  onScheduleInterview,
 }: CandidateDetailProps) {
   const [recommendation, setRecommendation] = useState<'yes' | 'no' | 'maybe'>('yes');
   const [comment, setComment] = useState('');
@@ -233,7 +238,7 @@ export function CandidateDetail({
         )}
       </Box>
 
-      {(onShortlist || onReject) && (
+      {(onShortlist || onReject || onScheduleInterview) && (
         <Group gap="sm">
           {onShortlist && (
             <Button
@@ -249,6 +254,16 @@ export function CandidateDetail({
           {onReject && candidate.stage !== 'rejected' && (
             <Button variant="light" color="red" size="xs" leftSection={<IconBan size={14} />} onClick={onReject}>
               Reject
+            </Button>
+          )}
+          {onScheduleInterview && (
+            <Button
+              variant="light"
+              size="xs"
+              leftSection={<IconCalendarTime size={14} />}
+              onClick={onScheduleInterview}
+            >
+              Schedule interview
             </Button>
           )}
         </Group>

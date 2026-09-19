@@ -36,6 +36,7 @@ import {
 } from '@tabler/icons-react';
 import { CandidateDetail } from './CandidateDetail';
 import { CreateCandidateForm } from './CreateCandidateForm';
+import { ScheduleInterviewModal } from '../Interviews/ScheduleInterviewModal';
 import type { Candidate } from '../../types';
 import { useEmbedMode } from '../../hooks/useEmbedMode';
 import { useSearchParams } from 'react-router-dom';
@@ -78,6 +79,7 @@ export function Candidates() {
   const [candidateToEdit, setCandidateToEdit] = useState<Candidate | null>(null);
   const [candidateToReject, setCandidateToReject] = useState<Candidate | null>(null);
   const [rejectOpened, { open: openReject, close: closeReject }] = useDisclosure(false);
+  const [scheduleOpened, { open: openSchedule, close: closeSchedule }] = useDisclosure(false);
   const [sortBy, setSortBy] = useState<string>('');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [page, setPage] = useState(1);
@@ -731,6 +733,7 @@ export function Candidates() {
                 : undefined
             }
             onAddFeedback={can('candidates.review') ? handleAddFeedback : undefined}
+            onScheduleInterview={can('interviews.manage') ? openSchedule : undefined}
           />
         )}
       </Drawer>
@@ -824,6 +827,12 @@ export function Candidates() {
           <Button color="red" onClick={handleDelete}>Delete</Button>
         </Group>
       </Modal>
+
+      <ScheduleInterviewModal
+        opened={scheduleOpened}
+        onClose={closeSchedule}
+        initialCandidateId={selectedCandidate?.id}
+      />
     </Box>
   );
 }

@@ -12,15 +12,33 @@ export type Permission =
   | 'jobs.manage' // create / edit / publish / close a job
   | 'candidates.manage' // create / edit / delete a candidate, free stage changes
   | 'candidates.review' // view + shortlist / reject / leave feedback
+  | 'interviews.manage' // schedule, cancel, record an outcome — AUD-P1-02
   | 'companies.view'
   | 'team.view'
   | 'reports.view'
   | 'admin.users';
 
 const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
-  recruiter: ['jobs.manage', 'candidates.manage', 'candidates.review', 'companies.view', 'team.view', 'reports.view'],
+  recruiter: [
+    'jobs.manage',
+    'candidates.manage',
+    'candidates.review',
+    'interviews.manage',
+    'companies.view',
+    'team.view',
+    'reports.view',
+  ],
   hiring_manager: ['candidates.review'],
-  admin: ['jobs.manage', 'candidates.manage', 'candidates.review', 'companies.view', 'team.view', 'reports.view', 'admin.users'],
+  admin: [
+    'jobs.manage',
+    'candidates.manage',
+    'candidates.review',
+    'interviews.manage',
+    'companies.view',
+    'team.view',
+    'reports.view',
+    'admin.users',
+  ],
 };
 
 /** Routes gated to specific roles, keyed by path, for use in RequireRole guards. */

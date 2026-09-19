@@ -14,6 +14,11 @@ export interface User {
   lastName: string;
   avatar?: string;
   role: Role;
+  /** IANA zone, e.g. 'America/Los_Angeles'. Not real per-person data — every
+   *  mock user is given the org's own HQ zone (see utils/timezones.ts) since
+   *  nothing in this dataset says where a given recruiter actually sits.
+   *  Used only for the interview time-zone-mismatch notice — AUD-P1-02. */
+  timezone?: string;
   createdAt: string;
 }
 
@@ -144,6 +149,32 @@ export interface Application {
   coverNote?: string;
   cvFileName?: string;
   createdAt: string;
+}
+
+/**
+ * A scheduled interview between one candidate and one or more interviewers
+ * for a job — AUD-P1-02. Unlike the Calendar page's old local `Interview`
+ * type (free-text candidate/role/company strings with no relationship to
+ * anything), this ties directly to a real Candidate, Job and User records.
+ */
+export interface Interview {
+  id: string;
+  candidateId: string;
+  candidate?: Candidate;
+  jobId?: string;
+  job?: Job;
+  interviewerIds: string[];
+  interviewers?: User[];
+  /** ISO datetime, UTC. */
+  scheduledAt: string;
+  durationMinutes: number;
+  type: 'video' | 'phone' | 'onsite';
+  status: 'scheduled' | 'completed' | 'cancelled';
+  /** Only meaningful once status is 'completed'; unset otherwise. */
+  outcome?: 'advance' | 'reject' | 'undecided';
+  notes?: string;
+  createdAt: string;
+  updatedAt?: string;
 }
 
 export interface PaginatedResponse<T> {
