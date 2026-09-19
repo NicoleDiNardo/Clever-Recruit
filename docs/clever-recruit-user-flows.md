@@ -64,10 +64,12 @@ Goal: act on many candidates at once (e.g. reject all unqualified applicants aft
 ### 20. Candidate withdraws an application [New scope]
 Goal: pull out of consideration. Start: status page. Preconditions: application not already closed (hired/rejected/withdrawn). Steps: click Withdraw → confirmation dialog (destructive, but candidate-initiated) → confirm. Feedback: confirmation required; status updates immediately; recruiter sees it on their side too. Decision: confirm vs. cancel. Alternative: n/a. Validation: n/a. Error: action failure → retry. Success: application marked withdrawn on both candidate and recruiter sides. Analytics: `application_withdrawn`.
 
-### 21. Administrator invites a team member [New scope]
+### 21. Administrator invites a team member [Implemented]
+**Doc correction, made while assembling the case study**: this was still marked `[New scope]`, but `pages/Admin/Users/index.tsx` + `context/OrgUsersContext.tsx` (commit `e7361a2`, an earlier phase of this engagement) already build exactly this — the doc was never updated to match. See the IA doc's `/admin/users` entry for the same correction.
 Goal: add a new person to the org with the right access level. Start: `/admin/users` → Invite. Preconditions: admin role. Steps: enter email, choose role (recruiter/hiring manager/admin) → send invite. Feedback: inline email-format validation; loading state; success confirmation that's explicit about simulation ("Invitation ready — would be emailed to X in a live environment," per the product-definition assumption that no real email sends). Decision: which role to assign. Alternative: email already invited/exists → clear duplicate message, not a generic error. Validation: valid email required, role required. Error: submit failure → retry. Success: user appears in the list with a "Pending" status. Analytics: `user_invited`.
 
-### 22. Administrator changes permissions [New scope]
+### 22. Administrator changes permissions [Implemented]
+**Same correction as flow 21** — built in `e7361a2`, including the sole-admin-demotion guard described below.
 Goal: correct someone's access level. Start: `/admin/users` → select a user. Preconditions: admin role; target user exists and isn't the last remaining admin (prevents an org locking itself out — a real edge case worth designing for). Steps: change role dropdown → confirm. Feedback: confirmation dialog for a downgrade (destructive-ish — losing access is disruptive) or an upgrade; immediate list update. Decision: confirm vs. cancel. Alternative: attempting to demote the sole admin → blocked with an explanation, not a silent failure. Validation: n/a beyond the sole-admin guard. Error: save failure → retry. Success: role updated, reflected immediately in that user's nav on their next action. Analytics: `user_role_changed`.
 
 ### 23. User handles a failed action or network error [New scope, cross-cutting]
