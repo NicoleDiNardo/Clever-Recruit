@@ -19,6 +19,7 @@ import {
   Modal,
   Select,
   Paper,
+  UnstyledButton,
 } from '@mantine/core';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
@@ -325,10 +326,21 @@ export function Candidates() {
   const SortIcon = ({ column }: { column: string }) => {
     if (sortBy !== column) return null;
     return sortOrder === 'asc' ? (
-      <IconSortAscending size={14} />
+      <IconSortAscending size={14} aria-hidden="true" />
     ) : (
-      <IconSortDescending size={14} />
+      <IconSortDescending size={14} aria-hidden="true" />
     );
+  };
+
+  /* AUD-P2-01: `aria-sort` belongs on the <th> itself, not the button inside
+   * it — that's what makes a screen reader announce "sorted ascending"/
+   * "descending" as part of the column header, rather than needing a
+   * separate, easy-to-miss text label. Unsorted-but-sortable columns get
+   * 'none' (a real state, distinct from a non-sortable column like Email,
+   * which gets no aria-sort attribute at all). */
+  const ariaSortFor = (column: string): 'ascending' | 'descending' | 'none' => {
+    if (sortBy !== column) return 'none';
+    return sortOrder === 'asc' ? 'ascending' : 'descending';
   };
 
   return (
@@ -474,39 +486,39 @@ export function Candidates() {
         <Table striped highlightOnHover verticalSpacing="sm">
           <Table.Thead>
             <Table.Tr>
-              <Table.Th
-                style={{ cursor: 'pointer' }}
-                onClick={() => handleSort('lastName')}
-              >
-                <Group gap={4}>
+              <Table.Th aria-sort={ariaSortFor('lastName')} p={0}>
+                <UnstyledButton
+                  onClick={() => handleSort('lastName')}
+                  style={{ display: 'flex', width: '100%', alignItems: 'center', gap: 4, padding: 'var(--table-vertical-spacing) var(--table-horizontal-spacing, var(--mantine-spacing-xs))' }}
+                >
                   Candidate <SortIcon column="lastName" />
-                </Group>
+                </UnstyledButton>
               </Table.Th>
-              <Table.Th
-                style={{ cursor: 'pointer' }}
-                onClick={() => handleSort('jobTitle')}
-              >
-                <Group gap={4}>
+              <Table.Th aria-sort={ariaSortFor('jobTitle')} p={0}>
+                <UnstyledButton
+                  onClick={() => handleSort('jobTitle')}
+                  style={{ display: 'flex', width: '100%', alignItems: 'center', gap: 4, padding: 'var(--table-vertical-spacing) var(--table-horizontal-spacing, var(--mantine-spacing-xs))' }}
+                >
                   Job Title <SortIcon column="jobTitle" />
-                </Group>
+                </UnstyledButton>
               </Table.Th>
               <Table.Th>Email</Table.Th>
               <Table.Th style={{ whiteSpace: 'nowrap' }}>Phone</Table.Th>
-              <Table.Th
-                style={{ cursor: 'pointer' }}
-                onClick={() => handleSort('score')}
-              >
-                <Group gap={4}>
+              <Table.Th aria-sort={ariaSortFor('score')} p={0}>
+                <UnstyledButton
+                  onClick={() => handleSort('score')}
+                  style={{ display: 'flex', width: '100%', alignItems: 'center', gap: 4, padding: 'var(--table-vertical-spacing) var(--table-horizontal-spacing, var(--mantine-spacing-xs))' }}
+                >
                   Score <SortIcon column="score" />
-                </Group>
+                </UnstyledButton>
               </Table.Th>
-              <Table.Th
-                style={{ cursor: 'pointer' }}
-                onClick={() => handleSort('status')}
-              >
-                <Group gap={4}>
+              <Table.Th aria-sort={ariaSortFor('status')} p={0}>
+                <UnstyledButton
+                  onClick={() => handleSort('status')}
+                  style={{ display: 'flex', width: '100%', alignItems: 'center', gap: 4, padding: 'var(--table-vertical-spacing) var(--table-horizontal-spacing, var(--mantine-spacing-xs))' }}
+                >
                   Status <SortIcon column="status" />
-                </Group>
+                </UnstyledButton>
               </Table.Th>
               <Table.Th>Tools</Table.Th>
             </Table.Tr>

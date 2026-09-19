@@ -166,6 +166,8 @@ Priority key: **P0** blocks core use / accessibility / security / data-loss risk
 - Recommended fix: Make headers real `<button>`s with `aria-sort="ascending"|"descending"|"none"`.
 - Acceptance criteria: VoiceOver/NVDA announces "Name, sortable column, sorted ascending" or equivalent.
 
+**Status: resolved.** Each sortable header (Candidate, Job Title, Score, Status — Email/Phone/Tools were never sortable and are untouched) is now `aria-sort="ascending"|"descending"|"none"` on the `<th>` itself, wrapping a real Mantine `UnstyledButton` (matching the existing keyboard-operable button pattern in `Sidebar.tsx`) instead of an `onClick` on a plain `<div>`-like `Table.Th`. This makes the column both keyboard-operable (Tab + Enter/Space, not just a mouse click) and correctly announced by assistive tech via native `aria-sort` semantics rather than a decorative icon alone. Verified: `tsc --noEmit` and `npm run build` clean. **Not yet verified**: an actual VoiceOver/NVDA pass, as the acceptance criteria literally asks for — this fix hasn't been screen-reader-tested, only built correctly to the ARIA spec. Flagging that distinction rather than claiming the acceptance criteria is fully met.
+
 **AUD-P2-02 — Inconsistent client state pattern (Context vs local `useState`)**
 - Area: Technical
 - Location: `CandidatesContext.tsx` vs `Jobs/index.tsx`
@@ -173,6 +175,8 @@ Priority key: **P0** blocks core use / accessibility / security / data-loss risk
 - Why it matters: Adding `Interview`/`Application` entities on an inconsistent foundation compounds the inconsistency.
 - Recommended fix: Standardise on context (or TanStack Query, already a dependency but apparently unused against the mock data layer) before adding new entities.
 - Acceptance criteria: Jobs and Candidates read/write through the same state pattern; new entities (Interviews, Applications) follow it from the start.
+
+**Status: resolved, incidentally, in commit `fc9b134`.** That commit's actual purpose was closing an AUD-P1-03 gap (`/jobs` and `/careers` reading disconnected copies of job data), and its fix — adding `context/JobsContext.tsx`, matching the existing `CandidatesContext`/`InterviewsContext`/`ApplicationsContext` pattern — happens to be exactly this item's acceptance criterion: `Jobs/index.tsx` now reads/writes through context like `Candidates/index.tsx` does, rather than local `useState`. Noted here rather than left to be "discovered" again, since it wasn't done as a deliberate response to this backlog item. **Not fully resolved**: `Companies/index.tsx` still holds its own list in local `useState` (`initialCompanies`) — not named in this item's location/acceptance criteria, so left as-is, but it's the same pattern and would be the next candidate if this item's scope were extended.
 
 **AUD-P2-03 — No quality gates (lint, typecheck-on-build, tests, CI)**
 - Area: Technical
