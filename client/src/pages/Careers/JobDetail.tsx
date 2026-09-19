@@ -1,21 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import {
-  Container,
-  Title,
-  Text,
-  Stack,
-  Group,
-  Badge,
-  Button,
-  Card,
-  Skeleton,
-  Anchor,
-  Divider,
-} from '@mantine/core';
-import { IconArrowLeft, IconMapPin, IconBuilding, IconCurrencyDollar, IconLock, IconMoodSad } from '@tabler/icons-react';
+import { Container, Stack, Skeleton, Anchor } from '@mantine/core';
+import { IconArrowLeft, IconLock, IconMoodSad } from '@tabler/icons-react';
 import { mockJobs } from '../../data/mockData';
 import { EmptyState } from '../../components/EmptyState';
+import { JobPostingView } from '../../components/JobPostingView';
 
 /** Public job detail — /careers/:jobId. Flow 5. A closed/paused role shows a
  *  clear "no longer accepting applications" state, distinct from a job that
@@ -61,62 +50,13 @@ export function JobDetail() {
           onAction={() => navigate('/careers')}
         />
       ) : (
-        <Stack gap="lg" mt="md">
-          <Stack gap={4}>
-            <Title order={1} size="h2">{job.title}</Title>
-            <Group gap="md" mt={4}>
-              <Group gap={4}>
-                {job.company?.logo ? (
-                  <img src={job.company.logo} alt="" width={18} height={18} style={{ borderRadius: 4 }} />
-                ) : (
-                  <IconBuilding size={16} color="gray" />
-                )}
-                <Text size="sm">{job.company?.name}</Text>
-              </Group>
-              {job.location && (
-                <Group gap={4}>
-                  <IconMapPin size={16} color="gray" />
-                  <Text size="sm">{job.location}</Text>
-                </Group>
-              )}
-            </Group>
-            <Group gap="xs" mt="xs">
-              {job.type && <Badge variant="light" color="blue">{job.type}</Badge>}
-              <Badge variant="light" color="green">Open</Badge>
-            </Group>
-          </Stack>
-
-          {job.salary && (
-            <Card withBorder padding="md">
-              <Group gap={4} mb={4}>
-                <IconCurrencyDollar size={16} />
-                <Text size="sm" fw={500}>Salary range</Text>
-              </Group>
-              <Text size="sm">{job.salary}</Text>
-            </Card>
-          )}
-
-          <Stack gap="xs">
-            <Text fw={500}>About the role</Text>
-            <Text size="sm" c="dimmed" style={{ whiteSpace: 'pre-wrap' }}>
-              {job.description || 'No description provided.'}
-            </Text>
-          </Stack>
-
-          <Divider />
-
-          <Group>
-            <Button size="md" onClick={() => navigate(`/careers/${job.id}/apply`)}>
-              Apply for this role
-            </Button>
-            <Button
-              size="md"
-              variant="subtle"
-              onClick={() => navigate('/careers/status')}
-            >
-              Already applied? Check status
-            </Button>
-          </Group>
+        <Stack mt="md">
+          <JobPostingView
+            job={job}
+            mode="live"
+            onApply={() => navigate(`/careers/${job.id}/apply`)}
+            onCheckStatus={() => navigate('/careers/status')}
+          />
         </Stack>
       )}
     </Container>
