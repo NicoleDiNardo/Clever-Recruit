@@ -9,10 +9,10 @@ Clever Recruit is a recruitment and applicant-tracking product that lets a small
 
 ## Target users
 
-1. **Recruiter** [Implemented, partial] — owns jobs and the candidate pipeline day to day.
-2. **Hiring manager** [New scope — approved] — reviews and decides on candidates for their own open roles; does not manage jobs, pipeline stages generally, or other recruiters' roles.
-3. **Candidate** [New scope — approved] — an external, unauthenticated (or lightly authenticated via a status-lookup token/email) user who discovers, applies to, and tracks a single application.
-4. **Administrator** [New scope — approved, reduced] — manages users, invites, and role assignment. Full organisation-settings and audit-log surfaces are scoped as **[Future scope]** (see MVP scope below) — the highest-value admin behaviour is user/role management, and building a full audit-log system for a portfolio demo with no real security boundary to audit would be scope without payoff.
+1. **Recruiter** [Implemented] — owns jobs and the candidate pipeline day to day.
+2. **Hiring manager** [Implemented] — reviews and decides on candidates; not scoped to "their own open roles" specifically — see the Pipeline board note below, this app has no data linking a hiring manager to particular jobs, so every hiring manager sees the same full board. Does not manage jobs, pipeline stages generally, or other recruiters' roles — that part is real, enforced by `usePermissions.ts`.
+3. **Candidate** [Implemented] — an external, unauthenticated user who discovers, applies to, and tracks a single application via email + application reference (not a full account with a password, per the assumption below).
+4. **Administrator** [Implemented] — manages users, invites, role assignment, and (added since) a read-only roles reference and minimal organisation settings. Full organisation-settings and audit-log surfaces stay **[Future scope]** (see MVP scope below) — building a full audit-log system for a portfolio demo with no real security boundary to audit would be scope without payoff.
 
 ## Jobs to be done
 
@@ -40,32 +40,34 @@ Clever Recruit is a recruitment and applicant-tracking product that lets a small
 
 ## In-scope features
 
-**Recruiter** [Implemented, extending]
-- Job creation, editing, draft → preview → publish, close [publish/preview flow is New scope — approved; CRUD is Implemented]
+**Doc correction**: every bullet below was still marked `[New scope — approved]` well after it shipped — the tree in `clever-recruit-information-architecture.md` already listed `/pipeline`, `/interviews` and the whole admin block as `[Implemented]`, this file was just never brought in line. Corrected here, item by item, rather than left to understate what's actually live.
+
+**Recruiter** [Implemented]
+- Job creation, editing, draft → preview → publish, close [Implemented]
 - Candidate list: search, filter, sort, paginate [Implemented]
-- Candidate pipeline board view with stage changes [New scope — approved]
+- Candidate pipeline board view with stage changes [Implemented] — drag-and-drop plus a keyboard-operable "Move to…" menu, `pages/Pipeline/index.tsx`
 - Candidate detail: profile, notes, tasks, assignments [Implemented]
-- Interview scheduling from a candidate's profile [New scope — approved]
-- Bulk candidate actions (multi-select stage change / reject) [New scope — approved]
+- Interview scheduling from a candidate's profile [Implemented] — `ScheduleInterviewModal`, shared by the candidate profile, `/interviews` and Calendar
+- Bulk candidate actions (multi-select stage change / reject) [Implemented] — including the "affecting zero records" disabled state
 
-**Hiring manager** [New scope — approved]
-- View candidates for jobs they're assigned to
-- Shortlist / reject with a reason
-- Leave structured feedback visible to the recruiter
-- See interview schedule for their roles
+**Hiring manager** [Implemented]
+- View candidates for jobs they're assigned to [Implemented, not scoped] — sees the same full board/list as everyone else; there's no data model linking a hiring manager to specific jobs, so "their own roles" isn't real yet, only the permission boundary (no create/edit/free-stage-move rights) is
+- Shortlist / reject [Implemented] — **not** "with a reason": `onReject` in `CandidateDetail.tsx` takes no reason argument, this bullet overclaimed
+- Leave structured feedback visible to the recruiter [Implemented] — the Feedback tab on candidate detail
+- See interview schedule for their roles [Implemented, not scoped] — same caveat as above: read-only access to the same interview list everyone sees, not filtered to "their" roles
 
-**Candidate** [New scope — approved]
-- Browse public job listings, view job detail
-- Apply with a form + CV/file upload
-- Receive an application confirmation
-- Check application status via a status page
+**Candidate** [Implemented]
+- Browse public job listings, view job detail [Implemented] — `/careers`, `/careers/:jobId`
+- Apply with a form + CV/file upload [Implemented] — `/careers/:jobId/apply`
+- Receive an application confirmation [Implemented] — `/careers/apply/:applicationId/confirmation`
+- Check application status via a status page [Implemented] — `/careers/status`, email + reference lookup
 
-**Administrator** [New scope — approved, reduced]
-- View organisation users and their roles
-- Invite a new user by email with an assigned role
-- View/change an existing user's role
-- Read-only roles & permissions reference (not a second place to change a role)
-- Minimal organisation settings: name and logo
+**Administrator** [Implemented]
+- View organisation users and their roles [Implemented]
+- Invite a new user by email with an assigned role [Implemented] — simulated invite, no real email sent (no backend to send from)
+- View/change an existing user's role [Implemented] — includes the sole-remaining-admin guard
+- Read-only roles & permissions reference (not a second place to change a role) [Implemented] — `/admin/roles`
+- Minimal organisation settings: name and logo [Implemented] — `/admin/organisation`
 
 ## Out-of-scope features
 
