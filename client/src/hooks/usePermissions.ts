@@ -18,7 +18,7 @@ export type Permission =
   | 'reports.view'
   | 'admin.users';
 
-const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
+export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
   recruiter: [
     'jobs.manage',
     'candidates.manage',
@@ -41,6 +41,21 @@ const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
   ],
 };
 
+/** Human labels for the Permission union, shared by the Roles reference page
+    so it reads from the same source of truth as the guards instead of
+    keeping its own copy (the drift TECH-04 already called out once, for
+    nav items — see config/navigation.ts). */
+export const PERMISSION_LABEL: Record<Permission, string> = {
+  'jobs.manage': 'Create, edit, publish and close jobs',
+  "candidates.manage": "Create, edit and change a candidate's stage",
+  'candidates.review': 'Review candidates — shortlist, reject, leave feedback',
+  'interviews.manage': 'Schedule, cancel and record interview outcomes',
+  'companies.view': 'View companies',
+  'team.view': 'View team',
+  'reports.view': 'View reports',
+  'admin.users': 'Invite users and change roles',
+};
+
 /** Routes gated to specific roles, keyed by path, for use in RequireRole guards. */
 export const ROUTE_ROLES: Record<string, Role[]> = {
   '/jobs': ['recruiter', 'admin'],
@@ -48,6 +63,8 @@ export const ROUTE_ROLES: Record<string, Role[]> = {
   '/team': ['recruiter', 'admin'],
   '/reports': ['recruiter', 'admin'],
   '/admin/users': ['admin'],
+  '/admin/roles': ['admin'],
+  '/admin/organisation': ['admin'],
 };
 
 export function usePermissions() {

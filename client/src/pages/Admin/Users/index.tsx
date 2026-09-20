@@ -22,6 +22,7 @@ import { useOrgUsers } from '../../../context/OrgUsersContext';
 import { useUser } from '../../../context/UserContext';
 import type { Role } from '../../../types';
 import { EmptyState } from '../../../components/EmptyState';
+import { AdminTabs } from '../../../components/AdminTabs';
 
 const ROLE_OPTIONS: { value: Role; label: string }[] = [
   { value: 'recruiter', label: 'Recruiter' },
@@ -98,6 +99,8 @@ export function AdminUsers() {
           Invite user
         </Button>
       </Flex>
+
+      <AdminTabs />
 
       {users.length === 0 ? (
         <EmptyState

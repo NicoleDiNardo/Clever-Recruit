@@ -9,6 +9,7 @@ import { theme } from './theme';
 import { UserProvider } from './context/UserContext';
 import { CandidatesProvider } from './context/CandidatesContext';
 import { OrgUsersProvider } from './context/OrgUsersContext';
+import { OrgSettingsProvider } from './context/OrgSettingsContext';
 import { ApplicationsProvider } from './context/ApplicationsContext';
 import { InterviewsProvider } from './context/InterviewsContext';
 import { JobsProvider } from './context/JobsContext';
@@ -43,7 +44,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                 <InterviewsProvider>
                   <JobsProvider>
                     <OrgUsersProvider>
-                      <App />
+                      <OrgSettingsProvider>
+                        <App />
+                      </OrgSettingsProvider>
                     </OrgUsersProvider>
                   </JobsProvider>
                 </InterviewsProvider>

@@ -13,6 +13,8 @@ import { Settings } from './pages/Settings';
 import { Login } from './pages/Login';
 import { NotFound } from './pages/NotFound';
 import { AdminUsers } from './pages/Admin/Users';
+import { AdminRoles } from './pages/Admin/Roles';
+import { AdminOrganisation } from './pages/Admin/Organisation';
 import { CareersLayout } from './pages/Careers/CareersLayout';
 import { Directory } from './pages/Careers/Directory';
 import { JobDetail } from './pages/Careers/JobDetail';
@@ -130,6 +132,22 @@ export function App() {
           element={
             <RequireRole roles={['admin']}>
               <AdminUsers />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="/admin/roles"
+          element={
+            <RequireRole roles={['admin']}>
+              <AdminRoles />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="/admin/organisation"
+          element={
+            <RequireRole roles={['admin']}>
+              <AdminOrganisation />
             </RequireRole>
           }
         />
