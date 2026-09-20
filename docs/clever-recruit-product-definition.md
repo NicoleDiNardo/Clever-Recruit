@@ -64,6 +64,8 @@ Clever Recruit is a recruitment and applicant-tracking product that lets a small
 - View organisation users and their roles
 - Invite a new user by email with an assigned role
 - View/change an existing user's role
+- Read-only roles & permissions reference (not a second place to change a role)
+- Minimal organisation settings: name and logo
 
 ## Out-of-scope features
 
