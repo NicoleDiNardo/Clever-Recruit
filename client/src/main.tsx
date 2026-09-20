@@ -8,6 +8,10 @@ import { App } from './App';
 import { theme } from './theme';
 import { UserProvider } from './context/UserContext';
 import { CandidatesProvider } from './context/CandidatesContext';
+import { OrgUsersProvider } from './context/OrgUsersContext';
+import { ApplicationsProvider } from './context/ApplicationsContext';
+import { InterviewsProvider } from './context/InterviewsContext';
+import { JobsProvider } from './context/JobsContext';
 import { isEmbedMode } from './hooks/useEmbedMode';
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
@@ -35,7 +39,15 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <BrowserRouter>
           <UserProvider>
             <CandidatesProvider>
-              <App />
+              <ApplicationsProvider>
+                <InterviewsProvider>
+                  <JobsProvider>
+                    <OrgUsersProvider>
+                      <App />
+                    </OrgUsersProvider>
+                  </JobsProvider>
+                </InterviewsProvider>
+              </ApplicationsProvider>
             </CandidatesProvider>
           </UserProvider>
         </BrowserRouter>

@@ -23,7 +23,7 @@ import {
 } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
 import { useCandidates } from '../../context/CandidatesContext';
-import { mockJobs } from '../../data/mockData';
+import { useJobs } from '../../context/JobsContext';
 import { STAGE_COLORS } from '../../utils/statusColors';
 
 interface StatCardProps {
@@ -142,7 +142,8 @@ export function Dashboard() {
     totalPipeline > 0 ? (count / totalPipeline) * 100 : 0;
   const interviewCount = stageCounts.interview ?? 0;
   const hiredCount = stageCounts.hired ?? 0;
-  const activeJobs = mockJobs.filter((j) => j.status === 'open' || j.status === 'active').length;
+  const { jobs } = useJobs();
+  const activeJobs = jobs.filter((j) => j.status === 'open' || j.status === 'active').length;
 
   return (
     <Box>
@@ -164,7 +165,7 @@ export function Dashboard() {
         />
         <StatCard
           title="Active Jobs"
-          value={String(activeJobs || mockJobs.length)}
+          value={String(activeJobs || jobs.length)}
           icon={<IconBriefcase size={24} />}
           color="teal"
           change={8}

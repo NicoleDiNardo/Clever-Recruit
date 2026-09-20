@@ -10,7 +10,7 @@
 .link {
   width: 100%;
   min-height: 40px;
-  padding: 0 10px;
+  padding: 10px 14px;
   border-radius: var(--mantine-radius-md);
   display: flex;
   align-items: center;
@@ -24,11 +24,16 @@
 }
 
 .link:hover {
-  background-color: light-dark(var(--mantine-color-blue-0), var(--mantine-color-blue-9));
-  color: light-dark(var(--mantine-color-blue-6), var(--mantine-color-blue-4));
+  background-color: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-5));
+  color: light-dark(var(--mantine-color-gray-9), var(--mantine-color-gray-1));
 }
 
 .link[data-active] {
+  background-color: light-dark(var(--mantine-color-blue-1), var(--mantine-color-blue-9));
+  color: light-dark(var(--mantine-color-blue-7), var(--mantine-color-blue-3));
+}
+
+.link[data-active]:hover {
   background-color: light-dark(var(--mantine-color-blue-1), var(--mantine-color-blue-9));
   color: light-dark(var(--mantine-color-blue-7), var(--mantine-color-blue-3));
 }

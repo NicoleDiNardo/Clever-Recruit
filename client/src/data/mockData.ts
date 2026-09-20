@@ -1,4 +1,5 @@
 import type { Candidate, Company, Job, User } from '../types';
+import { ORG_TIMEZONE } from '../utils/timezones';
 
 export const mockUsers: User[] = [
   {
@@ -8,6 +9,7 @@ export const mockUsers: User[] = [
     lastName: 'Chen',
     avatar: undefined,
     role: 'recruiter',
+    timezone: ORG_TIMEZONE,
     createdAt: '2024-01-15T10:00:00Z',
   },
   {
@@ -17,6 +19,7 @@ export const mockUsers: User[] = [
     lastName: 'Williams',
     avatar: undefined,
     role: 'recruiter',
+    timezone: ORG_TIMEZONE,
     createdAt: '2024-02-01T10:00:00Z',
   },
   {
@@ -26,6 +29,7 @@ export const mockUsers: User[] = [
     lastName: 'Johnson',
     avatar: undefined,
     role: 'admin',
+    timezone: ORG_TIMEZONE,
     createdAt: '2024-01-10T10:00:00Z',
   },
   {
@@ -35,7 +39,18 @@ export const mockUsers: User[] = [
     lastName: 'Kim',
     avatar: undefined,
     role: 'recruiter',
+    timezone: ORG_TIMEZONE,
     createdAt: '2024-03-05T10:00:00Z',
+  },
+  {
+    id: '5',
+    email: 'alex@cleverrecruit.com',
+    firstName: 'Alex',
+    lastName: 'Rivera',
+    avatar: undefined,
+    role: 'hiring_manager',
+    timezone: ORG_TIMEZONE,
+    createdAt: '2024-04-12T10:00:00Z',
   },
 ];
 

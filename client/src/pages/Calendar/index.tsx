@@ -1,27 +1,20 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Title,
   Text,
   Group,
   Card,
   Badge,
-  Avatar,
-  Stack,
   Box,
   SimpleGrid,
   Grid,
   Button,
   ActionIcon,
-  Divider,
+  Stack,
   Timeline,
   ThemeIcon,
-  Modal,
-  TextInput,
-  Select,
 } from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
-import { useForm } from '@mantine/form';
-import { notifications } from '@mantine/notifications';
 import {
   IconCalendarEvent,
   IconChevronLeft,
@@ -31,75 +24,18 @@ import {
   IconPhone,
   IconMapPin,
   IconPlus,
-  IconCheck,
 } from '@tabler/icons-react';
+import { useInterviews } from '../../context/InterviewsContext';
+import { useCandidates } from '../../context/CandidatesContext';
+import { usePermissions } from '../../hooks/usePermissions';
+import { mockJobs } from '../../data/mockData';
+import type { Interview } from '../../types';
+import { ScheduleInterviewModal } from '../Interviews/ScheduleInterviewModal';
+import { EmptyState } from '../../components/EmptyState';
 
 const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-interface Interview {
-  id: string;
-  time: string;
-  duration: string;
-  candidate: string;
-  role: string;
-  company: string;
-  type: string;
-  interviewer?: string;
-  date?: string;
-}
-
-const initialTodayInterviews: Interview[] = [
-  {
-    id: '1',
-    time: '09:00',
-    duration: '45 min',
-    candidate: 'Robert Wolf',
-    role: 'Senior Software Engineer',
-    company: 'Google',
-    type: 'video',
-    interviewer: 'Jenny Chen',
-  },
-  {
-    id: '2',
-    time: '11:30',
-    duration: '60 min',
-    candidate: 'Jill Lenon',
-    role: 'Backend Engineer',
-    company: 'Meta',
-    type: 'video',
-    interviewer: 'Mark Williams',
-  },
-  {
-    id: '3',
-    time: '14:00',
-    duration: '30 min',
-    candidate: 'Sophia Martinez',
-    role: 'Engineering Manager',
-    company: 'Stripe',
-    type: 'phone',
-    interviewer: 'Jenny Chen',
-  },
-  {
-    id: '4',
-    time: '16:00',
-    duration: '45 min',
-    candidate: 'Liam Johnson',
-    role: 'Tech Lead',
-    company: 'Microsoft',
-    type: 'onsite',
-    interviewer: 'Sarah Johnson',
-  },
-];
-
-const initialUpcoming: Interview[] = [
-  { id: '5', date: 'Tomorrow', time: '10:00', duration: '45 min', candidate: 'Mason Lee', role: 'Data Manager', company: 'Samsung', type: 'video' },
-  { id: '6', date: 'Tomorrow', time: '14:30', duration: '30 min', candidate: 'Emma Thompson', role: 'Operations Manager', company: 'Netflix', type: 'phone' },
-  { id: '7', date: 'Wed, Jun 18', time: '09:00', duration: '60 min', candidate: 'Noah Brown', role: 'Project Manager', company: 'Shopify', type: 'video' },
-  { id: '8', date: 'Thu, Jun 19', time: '11:00', duration: '45 min', candidate: 'Ava Garcia', role: 'HR Manager', company: 'Klarna', type: 'onsite' },
-  { id: '9', date: 'Fri, Jun 20', time: '15:00', duration: '30 min', candidate: 'Ethan Wilson', role: 'DevOps Manager', company: 'Grab', type: 'video' },
-];
-
-function getTypeIcon(type: string) {
+function getTypeIcon(type: Interview['type']) {
   switch (type) {
     case 'video':
       return <IconVideo size={14} />;
@@ -107,12 +43,10 @@ function getTypeIcon(type: string) {
       return <IconPhone size={14} />;
     case 'onsite':
       return <IconMapPin size={14} />;
-    default:
-      return <IconCalendarEvent size={14} />;
   }
 }
 
-function getTypeColor(type: string) {
+function getTypeColor(type: Interview['type']) {
   switch (type) {
     case 'video':
       return 'blue';
@@ -120,29 +54,23 @@ function getTypeColor(type: string) {
       return 'teal';
     case 'onsite':
       return 'orange';
-    default:
-      return 'gray';
   }
 }
 
 export function Calendar() {
+  const navigate = useNavigate();
+  const { interviews } = useInterviews();
+  const { candidates } = useCandidates();
+  const { can } = usePermissions();
+  const canManage = can('interviews.manage');
+
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [todayInterviews, setTodayInterviews] = useState<Interview[]>(initialTodayInterviews);
-  const [upcomingInterviews] = useState<Interview[]>(initialUpcoming);
-  const [scheduleOpened, { open: openSchedule, close: closeSchedule }] = useDisclosure(false);
+  const [scheduleOpened, setScheduleOpened] = useState(false);
 
-  const monthName = currentMonth.toLocaleString('default', {
-    month: 'long',
-    year: 'numeric',
-  });
+  const monthName = currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' });
 
-  const handlePrevMonth = () => {
-    setCurrentMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
-  };
-
-  const handleNextMonth = () => {
-    setCurrentMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
-  };
+  const handlePrevMonth = () => setCurrentMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+  const handleNextMonth = () => setCurrentMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
 
   const getDaysInMonth = () => {
     const year = currentMonth.getFullYear();
@@ -160,47 +88,50 @@ export function Calendar() {
   const isCurrentMonth = currentMonth.getMonth() === now.getMonth() && currentMonth.getFullYear() === now.getFullYear();
   const today = isCurrentMonth ? now.getDate() : -1;
   const days = getDaysInMonth();
-  const interviewDays = [14, 15, 16, 18, 19, 20, 22, 25];
 
-  const form = useForm({
-    initialValues: {
-      candidate: '',
-      role: '',
-      company: '',
-      date: '',
-      time: '',
-      duration: '45 min',
-      type: 'video',
-      interviewer: '',
-    },
-    validate: {
-      candidate: (v) => (v.length < 1 ? 'Candidate is required' : null),
-      date: (v) => (v.length < 1 ? 'Date is required' : null),
-      time: (v) => (v.length < 1 ? 'Time is required' : null),
-    },
-  });
+  const active = useMemo(() => interviews.filter((i) => i.status !== 'cancelled'), [interviews]);
 
-  const handleSchedule = form.onSubmit((values) => {
-    const newInterview: Interview = {
-      id: String(Date.now()),
-      time: values.time,
-      duration: values.duration,
-      candidate: values.candidate,
-      role: values.role,
-      company: values.company,
-      type: values.type,
-      interviewer: values.interviewer,
-    };
-    setTodayInterviews((prev) => [...prev, newInterview]);
-    closeSchedule();
-    form.reset();
-    notifications.show({
-      title: 'Interview Scheduled',
-      message: `Interview with ${values.candidate} scheduled for ${values.date} at ${values.time}.`,
-      color: 'green',
-      icon: <IconCheck size={16} />,
+  // Derived from the interviews actually scheduled in the month currently
+  // shown — the old page's dot-marker days were a hardcoded array that
+  // never changed with the month, so paging to a different month kept
+  // showing the same dots regardless of what was really scheduled there.
+  const interviewDaysThisMonth = useMemo(() => {
+    const set = new Set<number>();
+    active.forEach((i) => {
+      const d = new Date(i.scheduledAt);
+      if (d.getFullYear() === currentMonth.getFullYear() && d.getMonth() === currentMonth.getMonth()) {
+        set.add(d.getDate());
+      }
     });
+    return set;
+  }, [active, currentMonth]);
+
+  const enrich = (interview: Interview) => ({
+    interview,
+    candidate: candidates.find((c) => c.id === interview.candidateId),
+    job: interview.jobId ? mockJobs.find((j) => j.id === interview.jobId) : undefined,
   });
+
+  const todayInterviews = useMemo(
+    () =>
+      active
+        .filter((i) => new Date(i.scheduledAt).toDateString() === now.toDateString())
+        .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())
+        .map(enrich),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [active, candidates]
+  );
+
+  const upcomingInterviews = useMemo(
+    () =>
+      active
+        .filter((i) => new Date(i.scheduledAt) > now && new Date(i.scheduledAt).toDateString() !== now.toDateString())
+        .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())
+        .slice(0, 8)
+        .map(enrich),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [active, candidates]
+  );
 
   return (
     <Box>
@@ -213,9 +144,11 @@ export function Calendar() {
             Manage your interviews and scheduled events.
           </Text>
         </div>
-        <Button leftSection={<IconPlus size={16} />} onClick={openSchedule}>
-          Schedule Interview
-        </Button>
+        {canManage && (
+          <Button leftSection={<IconPlus size={16} />} onClick={() => setScheduleOpened(true)}>
+            Schedule Interview
+          </Button>
+        )}
       </Group>
 
       <Grid>
@@ -252,7 +185,7 @@ export function Calendar() {
                     background:
                       day === today
                         ? 'var(--mantine-color-blue-6)'
-                        : day && interviewDays.includes(day)
+                        : day && interviewDaysThisMonth.has(day)
                           ? 'var(--mantine-color-blue-0)'
                           : undefined,
                     color: day === today ? 'white' : undefined,
@@ -268,7 +201,7 @@ export function Calendar() {
                       <Text size="sm" fw={day === today ? 700 : 400}>
                         {day}
                       </Text>
-                      {interviewDays.includes(day) && day !== today && (
+                      {interviewDaysThisMonth.has(day) && day !== today && (
                         <Box
                           style={{
                             position: 'absolute',
@@ -294,11 +227,17 @@ export function Calendar() {
               Today's Interviews
             </Title>
             {todayInterviews.length === 0 ? (
-              <Text size="sm" c="dimmed">No interviews scheduled for today.</Text>
+              <EmptyState icon={IconCalendarEvent} title="No interviews today" />
             ) : (
               <Stack gap="sm">
-                {todayInterviews.map((interview) => (
-                  <Card key={interview.id} withBorder padding="sm">
+                {todayInterviews.map(({ interview, candidate, job }) => (
+                  <Card
+                    key={interview.id}
+                    withBorder
+                    padding="sm"
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => navigate(`/interviews/${interview.id}`)}
+                  >
                     <Group justify="space-between" wrap="nowrap">
                       <Group gap="sm" wrap="nowrap">
                         <Box
@@ -312,19 +251,14 @@ export function Calendar() {
                         <div>
                           <Group gap="xs">
                             <Text size="sm" fw={600}>
-                              {interview.candidate}
+                              {candidate ? `${candidate.firstName} ${candidate.lastName}` : 'Unknown candidate'}
                             </Text>
-                            <Badge
-                              variant="light"
-                              color={getTypeColor(interview.type)}
-                              size="xs"
-                              leftSection={getTypeIcon(interview.type)}
-                            >
+                            <Badge variant="light" color={getTypeColor(interview.type)} size="xs" leftSection={getTypeIcon(interview.type)}>
                               {interview.type}
                             </Badge>
                           </Group>
                           <Text size="xs" c="dimmed">
-                            {interview.role} at {interview.company}
+                            {job?.title ?? 'No matching job'}
                           </Text>
                         </div>
                       </Group>
@@ -332,11 +266,11 @@ export function Calendar() {
                         <Group gap={4}>
                           <IconClock size={12} color="gray" />
                           <Text size="sm" fw={500}>
-                            {interview.time}
+                            {new Date(interview.scheduledAt).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}
                           </Text>
                         </Group>
                         <Text size="xs" c="dimmed">
-                          {interview.duration}
+                          {interview.durationMinutes} min
                         </Text>
                       </div>
                     </Group>
@@ -352,120 +286,51 @@ export function Calendar() {
             <Title order={4} mb="md">
               Upcoming
             </Title>
-            <Timeline active={-1} bulletSize={28} lineWidth={2}>
-              {upcomingInterviews.map((interview) => (
-                <Timeline.Item
-                  key={interview.id}
-                  bullet={
-                    <ThemeIcon
-                      size={28}
-                      radius="xl"
-                      color={getTypeColor(interview.type)}
-                      variant="light"
-                    >
-                      {getTypeIcon(interview.type)}
-                    </ThemeIcon>
-                  }
-                  title={
-                    <Text size="sm" fw={500}>
-                      {interview.candidate}
+            {upcomingInterviews.length === 0 ? (
+              <Text size="sm" c="dimmed">
+                Nothing scheduled ahead.
+              </Text>
+            ) : (
+              <Timeline active={-1} bulletSize={28} lineWidth={2}>
+                {upcomingInterviews.map(({ interview, candidate, job }) => (
+                  <Timeline.Item
+                    key={interview.id}
+                    bullet={
+                      <ThemeIcon size={28} radius="xl" color={getTypeColor(interview.type)} variant="light">
+                        {getTypeIcon(interview.type)}
+                      </ThemeIcon>
+                    }
+                    title={
+                      <Text
+                        size="sm"
+                        fw={500}
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => navigate(`/interviews/${interview.id}`)}
+                      >
+                        {candidate ? `${candidate.firstName} ${candidate.lastName}` : 'Unknown candidate'}
+                      </Text>
+                    }
+                  >
+                    <Text size="xs" c="dimmed">
+                      {job?.title ?? 'No matching job'}
                     </Text>
-                  }
-                >
-                  <Text size="xs" c="dimmed">
-                    {interview.role} at {interview.company}
-                  </Text>
-                  <Group gap={4} mt={4}>
-                    <Badge variant="light" size="xs" color="gray">
-                      {interview.date}
-                    </Badge>
-                    <Badge variant="light" size="xs" color="gray">
-                      {interview.time}
-                    </Badge>
-                  </Group>
-                </Timeline.Item>
-              ))}
-            </Timeline>
+                    <Group gap={4} mt={4}>
+                      <Badge variant="light" size="xs" color="gray">
+                        {new Date(interview.scheduledAt).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
+                      </Badge>
+                      <Badge variant="light" size="xs" color="gray">
+                        {new Date(interview.scheduledAt).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}
+                      </Badge>
+                    </Group>
+                  </Timeline.Item>
+                ))}
+              </Timeline>
+            )}
           </Card>
         </Grid.Col>
       </Grid>
 
-      {/* Schedule Interview Modal */}
-      <Modal opened={scheduleOpened} onClose={closeSchedule} title="Schedule Interview" size="md">
-        <form onSubmit={handleSchedule}>
-          <Stack gap="md">
-            <TextInput
-              label="Candidate Name"
-              placeholder="e.g. John Smith"
-              required
-              {...form.getInputProps('candidate')}
-            />
-            <Grid>
-              <Grid.Col span={6}>
-                <TextInput
-                  label="Role"
-                  placeholder="e.g. Software Engineer"
-                  {...form.getInputProps('role')}
-                />
-              </Grid.Col>
-              <Grid.Col span={6}>
-                <TextInput
-                  label="Company"
-                  placeholder="e.g. Google"
-                  {...form.getInputProps('company')}
-                />
-              </Grid.Col>
-            </Grid>
-            <Grid>
-              <Grid.Col span={6}>
-                <TextInput
-                  label="Date"
-                  placeholder="e.g. 2026-06-18"
-                  required
-                  {...form.getInputProps('date')}
-                />
-              </Grid.Col>
-              <Grid.Col span={6}>
-                <TextInput
-                  label="Time"
-                  placeholder="e.g. 14:00"
-                  required
-                  {...form.getInputProps('time')}
-                />
-              </Grid.Col>
-            </Grid>
-            <Grid>
-              <Grid.Col span={6}>
-                <Select
-                  label="Type"
-                  data={[
-                    { value: 'video', label: 'Video Call' },
-                    { value: 'phone', label: 'Phone' },
-                    { value: 'onsite', label: 'On-site' },
-                  ]}
-                  {...form.getInputProps('type')}
-                />
-              </Grid.Col>
-              <Grid.Col span={6}>
-                <Select
-                  label="Duration"
-                  data={['15 min', '30 min', '45 min', '60 min', '90 min']}
-                  {...form.getInputProps('duration')}
-                />
-              </Grid.Col>
-            </Grid>
-            <TextInput
-              label="Interviewer"
-              placeholder="e.g. Jenny Chen"
-              {...form.getInputProps('interviewer')}
-            />
-            <Group justify="flex-end" mt="md">
-              <Button variant="light" onClick={closeSchedule}>Cancel</Button>
-              <Button type="submit">Schedule</Button>
-            </Group>
-          </Stack>
-        </form>
-      </Modal>
+      <ScheduleInterviewModal opened={scheduleOpened} onClose={() => setScheduleOpened(false)} />
     </Box>
   );
 }

@@ -33,12 +33,13 @@ import {
   IconTrash,
   IconCheck,
 } from '@tabler/icons-react';
-import { mockJobs } from '../../data/mockData';
 import { mockCompanies as initialCompanies } from '../../data/mockData';
+import { useJobs } from '../../context/JobsContext';
 import type { Company } from '../../types';
 import { EmptyState } from '../../components/EmptyState';
 
 export function Companies() {
+  const { jobs } = useJobs();
   const [companies, setCompanies] = useState<Company[]>(initialCompanies);
   const [search, setSearch] = useState('');
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
@@ -60,7 +61,7 @@ export function Companies() {
   });
 
   const getOpenJobs = (companyId: string) =>
-    mockJobs.filter((j) => j.companyId === companyId && j.status === 'open').length;
+    jobs.filter((j) => j.companyId === companyId && j.status === 'open').length;
 
   const createForm = useForm({
     initialValues: {
@@ -299,7 +300,7 @@ export function Companies() {
 
             <Title order={4} mb="md">Open Jobs</Title>
             <Stack gap="xs">
-              {mockJobs
+              {jobs
                 .filter((j) => j.companyId === selectedCompany.id && j.status === 'open')
                 .map((job) => (
                   <Card key={job.id} withBorder padding="sm">
@@ -318,7 +319,7 @@ export function Companies() {
                     </Group>
                   </Card>
                 ))}
-              {mockJobs.filter((j) => j.companyId === selectedCompany.id && j.status === 'open')
+              {jobs.filter((j) => j.companyId === selectedCompany.id && j.status === 'open')
                 .length === 0 && (
                 <Text size="sm" c="dimmed">
                   No open positions

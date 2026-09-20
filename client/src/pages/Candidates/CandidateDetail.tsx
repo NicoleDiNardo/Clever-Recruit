@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   Stack,
   Group,
@@ -13,6 +14,7 @@ import {
   Flex,
   Button,
   Select,
+  Textarea,
 } from '@mantine/core';
 import {
   IconChevronLeft,
@@ -23,11 +25,18 @@ import {
   IconMail,
   IconPhone,
   IconMapPin,
+  IconStar,
+  IconStarFilled,
+  IconBan,
+  IconCalendarTime,
 } from '@tabler/icons-react';
 import type { Candidate } from '../../types';
+import { mockUsers } from '../../data/mockData';
 import {
   getEmploymentColor,
   getJobTitleColor,
+  getStageColor,
+  PIPELINE_STAGE_OPTIONS,
 } from '../../utils/statusColors';
 
 interface CandidateDetailProps {
@@ -37,20 +46,29 @@ interface CandidateDetailProps {
   onPrev: () => void;
   onNext: () => void;
   onClose: () => void;
+  /** Only recruiters/admins get these — see AUD-P0-01. Omitting a handler
+   *  hides its control rather than rendering a button that does nothing. */
   onEdit?: () => void;
   onDelete?: () => void;
   onStageChange?: (stage: string) => void;
+  /** Hiring-manager-specific actions — flows 13/14/17. */
+  onShortlist?: () => void;
+  onReject?: () => void;
+  onAddFeedback?: (recommendation: 'yes' | 'no' | 'maybe', comment: string) => void;
+  /** Recruiter/admin only — AUD-P1-02. Opens the shared scheduling modal
+   *  pre-filled with this candidate. */
+  onScheduleInterview?: () => void;
 }
 
-const STAGE_OPTIONS = [
-  { value: 'applied', label: 'Applied' },
-  { value: 'screening', label: 'Screening' },
-  { value: 'interview', label: 'Interview' },
-  { value: 'assessment', label: 'Assessment' },
-  { value: 'offer', label: 'Offer' },
-  { value: 'hired', label: 'Hired' },
-  { value: 'rejected', label: 'Rejected' },
+const STAGE_OPTIONS = PIPELINE_STAGE_OPTIONS;
+
+const RECOMMENDATION_OPTIONS = [
+  { value: 'yes', label: 'Yes — move forward' },
+  { value: 'maybe', label: 'Maybe — worth discussing' },
+  { value: 'no', label: 'No — not a fit' },
 ];
+
+const RECOMMENDATION_COLOR: Record<string, string> = { yes: 'green', maybe: 'yellow', no: 'red' };
 
 export function CandidateDetail({
   candidate,
@@ -62,7 +80,19 @@ export function CandidateDetail({
   onEdit,
   onDelete,
   onStageChange,
+  onShortlist,
+  onReject,
+  onAddFeedback,
+  onScheduleInterview,
 }: CandidateDetailProps) {
+  const [recommendation, setRecommendation] = useState<'yes' | 'no' | 'maybe'>('yes');
+  const [comment, setComment] = useState('');
+
+  const handleSubmitFeedback = () => {
+    onAddFeedback?.(recommendation, comment);
+    setComment('');
+  };
+
   return (
     <Stack gap="md">
       <Flex justify="space-between" align="center">
@@ -89,28 +119,41 @@ export function CandidateDetail({
         </Avatar>
         <Stack gap={4} style={{ flex: 1 }}>
           <Group justify="space-between">
-            <Title order={4}>
-              {candidate.firstName} {candidate.lastName}
-            </Title>
-            <Group gap={4}>
-              <ActionIcon
-                variant="subtle"
-                size="sm"
-                onClick={onEdit}
-                aria-label={`Edit ${candidate.firstName} ${candidate.lastName}`}
-              >
-                <IconEdit size={16} />
-              </ActionIcon>
-              <ActionIcon
-                variant="subtle"
-                size="sm"
-                color="red"
-                onClick={onDelete}
-                aria-label={`Delete ${candidate.firstName} ${candidate.lastName}`}
-              >
-                <IconTrash size={16} />
-              </ActionIcon>
+            <Group gap="xs">
+              <Title order={4}>
+                {candidate.firstName} {candidate.lastName}
+              </Title>
+              {candidate.shortlisted && (
+                <Badge color="yellow" variant="light" size="sm" leftSection={<IconStarFilled size={10} />}>
+                  Shortlisted
+                </Badge>
+              )}
             </Group>
+            {(onEdit || onDelete) && (
+              <Group gap={4}>
+                {onEdit && (
+                  <ActionIcon
+                    variant="subtle"
+                    size="sm"
+                    onClick={onEdit}
+                    aria-label={`Edit ${candidate.firstName} ${candidate.lastName}`}
+                  >
+                    <IconEdit size={16} />
+                  </ActionIcon>
+                )}
+                {onDelete && (
+                  <ActionIcon
+                    variant="subtle"
+                    size="sm"
+                    color="red"
+                    onClick={onDelete}
+                    aria-label={`Delete ${candidate.firstName} ${candidate.lastName}`}
+                  >
+                    <IconTrash size={16} />
+                  </ActionIcon>
+                )}
+              </Group>
+            )}
           </Group>
           {candidate.jobTitle && (
             <Badge variant="light" color={getJobTitleColor(candidate.jobTitle)} size="sm" w="fit-content">
@@ -176,13 +219,55 @@ export function CandidateDetail({
         <Text size="xs" fw={600} c="dimmed" mb={6}>
           Pipeline stage
         </Text>
-        <Select
-          data={STAGE_OPTIONS}
-          value={candidate.stage ?? 'applied'}
-          onChange={(value) => value && onStageChange?.(value)}
-          allowDeselect={false}
-        />
+        {onStageChange ? (
+          <Select
+            data={STAGE_OPTIONS}
+            value={candidate.stage ?? 'applied'}
+            onChange={(value) => value && onStageChange(value)}
+            allowDeselect={false}
+          />
+        ) : (
+          <Group gap="xs">
+            <Badge variant="light" color={getStageColor(candidate.stage)} size="lg">
+              {candidate.stage ?? 'applied'}
+            </Badge>
+            <Text size="xs" c="dimmed">
+              Only recruiters and admins can move a candidate through stages directly.
+            </Text>
+          </Group>
+        )}
       </Box>
+
+      {(onShortlist || onReject || onScheduleInterview) && (
+        <Group gap="sm">
+          {onShortlist && (
+            <Button
+              variant={candidate.shortlisted ? 'filled' : 'light'}
+              color="yellow"
+              size="xs"
+              leftSection={candidate.shortlisted ? <IconStarFilled size={14} /> : <IconStar size={14} />}
+              onClick={onShortlist}
+            >
+              {candidate.shortlisted ? 'Shortlisted' : 'Shortlist'}
+            </Button>
+          )}
+          {onReject && candidate.stage !== 'rejected' && (
+            <Button variant="light" color="red" size="xs" leftSection={<IconBan size={14} />} onClick={onReject}>
+              Reject
+            </Button>
+          )}
+          {onScheduleInterview && (
+            <Button
+              variant="light"
+              size="xs"
+              leftSection={<IconCalendarTime size={14} />}
+              onClick={onScheduleInterview}
+            >
+              Schedule interview
+            </Button>
+          )}
+        </Group>
+      )}
 
       <Divider />
 
@@ -190,15 +275,29 @@ export function CandidateDetail({
         <Text size="xs" fw={600} c="dimmed">
           Owner
         </Text>
-        <Group gap="xs" mt={4}>
-          <Avatar size="xs" radius="xl" color="blue">
-            {candidate.owner?.firstName?.[0] ?? 'J'}
-            {candidate.owner?.lastName?.[0] ?? 'C'}
-          </Avatar>
-          <Text size="sm">
-            {candidate.owner?.email ?? 'jenny@cleverrecruit.com'}
-          </Text>
-        </Group>
+        {(() => {
+          // owner may already be embedded on the record, or only ownerId is
+          // set and needs a lookup — or, for a candidate nobody has claimed
+          // yet (e.g. a fresh public application), neither is set, and that
+          // is a real state to show, not a stand-in for whoever's demoing.
+          const resolvedOwner = candidate.owner ?? mockUsers.find((u) => u.id === candidate.ownerId);
+          if (!resolvedOwner) {
+            return (
+              <Text size="sm" c="dimmed" mt={4}>
+                Unassigned
+              </Text>
+            );
+          }
+          return (
+            <Group gap="xs" mt={4}>
+              <Avatar size="xs" radius="xl" color="blue">
+                {resolvedOwner.firstName?.[0]}
+                {resolvedOwner.lastName?.[0]}
+              </Avatar>
+              <Text size="sm">{resolvedOwner.email}</Text>
+            </Group>
+          );
+        })()}
       </Box>
 
       <Divider />
@@ -243,6 +342,9 @@ export function CandidateDetail({
         <Tabs.List>
           <Tabs.Tab value="notes">Notes</Tabs.Tab>
           <Tabs.Tab value="tasks">Tasks</Tabs.Tab>
+          <Tabs.Tab value="feedback">
+            Feedback{candidate.feedback?.length ? ` (${candidate.feedback.length})` : ''}
+          </Tabs.Tab>
         </Tabs.List>
 
         <Tabs.Panel value="notes" pt="sm">
@@ -288,18 +390,77 @@ export function CandidateDetail({
             </Card>
           </Stack>
         </Tabs.Panel>
+
+        <Tabs.Panel value="feedback" pt="sm">
+          <Stack gap="sm">
+            {candidate.feedback && candidate.feedback.length > 0 ? (
+              candidate.feedback.map((f) => (
+                <Card key={f.id} withBorder padding="sm">
+                  <Group justify="space-between" mb={4}>
+                    <Group gap="xs">
+                      <Text size="sm" fw={500}>{f.authorName}</Text>
+                      <Badge size="xs" color={RECOMMENDATION_COLOR[f.recommendation]} variant="light">
+                        {f.recommendation}
+                      </Badge>
+                    </Group>
+                    <Text size="xs" c="dimmed">{new Date(f.createdAt).toLocaleDateString()}</Text>
+                  </Group>
+                  {f.comment && <Text size="xs" c="dimmed">{f.comment}</Text>}
+                </Card>
+              ))
+            ) : (
+              <Text size="sm" c="dimmed">No feedback yet.</Text>
+            )}
+
+            {onAddFeedback && (
+              <Card withBorder padding="sm">
+                <Text size="xs" fw={600} c="dimmed" mb={6}>
+                  Leave feedback
+                </Text>
+                <Stack gap="xs">
+                  <Select
+                    aria-label="Recommendation"
+                    data={RECOMMENDATION_OPTIONS}
+                    value={recommendation}
+                    onChange={(v) => v && setRecommendation(v as 'yes' | 'no' | 'maybe')}
+                    allowDeselect={false}
+                    size="xs"
+                  />
+                  <Textarea
+                    aria-label="Feedback comment"
+                    placeholder="Optional comment for the recruiter..."
+                    value={comment}
+                    onChange={(e) => setComment(e.currentTarget.value)}
+                    minRows={2}
+                    size="xs"
+                  />
+                  <Button size="xs" onClick={handleSubmitFeedback} style={{ alignSelf: 'flex-start' }}>
+                    Submit feedback
+                  </Button>
+                </Stack>
+              </Card>
+            )}
+          </Stack>
+        </Tabs.Panel>
       </Tabs>
 
-      <Divider />
-
-      <Group>
-        <Button variant="light" leftSection={<IconEdit size={16} />} onClick={onEdit}>
-          Edit
-        </Button>
-        <Button variant="light" color="red" leftSection={<IconTrash size={16} />} onClick={onDelete}>
-          Delete
-        </Button>
-      </Group>
+      {(onEdit || onDelete) && (
+        <>
+          <Divider />
+          <Group>
+            {onEdit && (
+              <Button variant="light" leftSection={<IconEdit size={16} />} onClick={onEdit}>
+                Edit
+              </Button>
+            )}
+            {onDelete && (
+              <Button variant="light" color="red" leftSection={<IconTrash size={16} />} onClick={onDelete}>
+                Delete
+              </Button>
+            )}
+          </Group>
+        </>
+      )}
     </Stack>
   );
 }

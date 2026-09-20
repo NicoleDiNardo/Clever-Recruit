@@ -19,6 +19,7 @@ import {
   Modal,
   Select,
   Paper,
+  UnstyledButton,
 } from '@mantine/core';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
@@ -36,31 +37,34 @@ import {
 } from '@tabler/icons-react';
 import { CandidateDetail } from './CandidateDetail';
 import { CreateCandidateForm } from './CreateCandidateForm';
+import { ScheduleInterviewModal } from '../Interviews/ScheduleInterviewModal';
 import type { Candidate } from '../../types';
 import { useEmbedMode } from '../../hooks/useEmbedMode';
 import { useSearchParams } from 'react-router-dom';
 import { useCandidates } from '../../context/CandidatesContext';
+import { usePermissions } from '../../hooks/usePermissions';
+import { useUser } from '../../context/UserContext';
 import {
   getStageColor,
   getStatusColor,
   getJobTitleColor,
+  PIPELINE_STAGE_OPTIONS,
 } from '../../utils/statusColors';
 
 
-const PIPELINE_STAGES = [
-  { value: 'applied', label: 'Applied' },
-  { value: 'screening', label: 'Screening' },
-  { value: 'interview', label: 'Interview' },
-  { value: 'assessment', label: 'Assessment' },
-  { value: 'offer', label: 'Offer' },
-  { value: 'hired', label: 'Hired' },
-  { value: 'rejected', label: 'Rejected' },
-];
+/* Was its own local copy, missing 'withdrawn' — a withdrawn candidate
+   couldn't be filtered to and showed no label in this dropdown. Now the
+   one shared list (utils/statusColors.ts) also used by the candidate
+   drawer's stage picker and the Pipeline board. */
+const PIPELINE_STAGES = PIPELINE_STAGE_OPTIONS;
 
 export function Candidates() {
   const [searchParams, setSearchParams] = useSearchParams();
   const stageFromUrl = searchParams.get('stage');
   const { candidates, setCandidates, updateCandidate, addCandidate, removeCandidate, resetCandidates } = useCandidates();
+  const { can, role } = usePermissions();
+  const { user: currentUser } = useUser();
+  const canManage = can('candidates.manage');
   const [search, setSearch] = useState('');
   const [ownOnly, setOwnOnly] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string | null>(null);
@@ -74,6 +78,9 @@ export function Candidates() {
   const [filterOpened, { open: openFilter, close: closeFilter }] = useDisclosure(false);
   const [candidateToDelete, setCandidateToDelete] = useState<Candidate | null>(null);
   const [candidateToEdit, setCandidateToEdit] = useState<Candidate | null>(null);
+  const [candidateToReject, setCandidateToReject] = useState<Candidate | null>(null);
+  const [rejectOpened, { open: openReject, close: closeReject }] = useDisclosure(false);
+  const [scheduleOpened, { open: openSchedule, close: closeSchedule }] = useDisclosure(false);
   const [sortBy, setSortBy] = useState<string>('');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [page, setPage] = useState(1);
@@ -172,6 +179,77 @@ export function Candidates() {
     });
   };
 
+  /* Hiring managers can shortlist or reject without free run of every stage
+     — AUD-P0-01's permission table. Shortlisting is non-destructive and
+     applies immediately; rejecting is destructive-ish for the candidate's
+     status page, so it goes through a confirm step plus a short undo
+     window, per the edge-cases doc's "accidental rejection" entry. */
+  const handleShortlistToggle = () => {
+    if (!selectedCandidate) return;
+    const next = !selectedCandidate.shortlisted;
+    updateCandidate(selectedCandidate.id, { shortlisted: next });
+    setSelectedCandidate({ ...selectedCandidate, shortlisted: next });
+    notifications.show({
+      message: next
+        ? `${selectedCandidate.firstName} ${selectedCandidate.lastName} shortlisted for the recruiter's attention.`
+        : `${selectedCandidate.firstName} ${selectedCandidate.lastName} removed from the shortlist.`,
+      color: 'yellow',
+    });
+  };
+
+  const confirmReject = () => {
+    if (!candidateToReject) return;
+    const previousStage = candidateToReject.stage;
+    updateCandidate(candidateToReject.id, { stage: 'rejected' });
+    if (selectedCandidate?.id === candidateToReject.id) {
+      setSelectedCandidate({ ...selectedCandidate, stage: 'rejected' });
+    }
+    closeReject();
+    const rejectedName = `${candidateToReject.firstName} ${candidateToReject.lastName}`;
+    const toastId = notifications.show({
+      title: 'Candidate rejected',
+      message: (
+        <Group gap={6} wrap="nowrap">
+          <Text size="sm">{rejectedName} won't move forward on this role.</Text>
+          <Text
+            size="sm"
+            fw={600}
+            c="blue"
+            style={{ cursor: 'pointer', flexShrink: 0 }}
+            onClick={() => {
+              updateCandidate(candidateToReject.id, { stage: previousStage });
+              if (selectedCandidate?.id === candidateToReject.id) {
+                setSelectedCandidate({ ...selectedCandidate, stage: previousStage });
+              }
+              notifications.hide(toastId);
+            }}
+          >
+            Undo
+          </Text>
+        </Group>
+      ),
+      color: 'red',
+      autoClose: 7000,
+    });
+    setCandidateToReject(null);
+  };
+
+  const handleAddFeedback = (recommendation: 'yes' | 'no' | 'maybe', comment: string) => {
+    if (!selectedCandidate) return;
+    const entry = {
+      id: `f${Date.now()}`,
+      recommendation,
+      comment,
+      authorId: currentUser.id,
+      authorName: `${currentUser.firstName} ${currentUser.lastName}`,
+      createdAt: new Date().toISOString(),
+    };
+    const feedback = [...(selectedCandidate.feedback ?? []), entry];
+    updateCandidate(selectedCandidate.id, { feedback });
+    setSelectedCandidate({ ...selectedCandidate, feedback });
+    notifications.show({ message: 'Feedback shared with the recruiter.', color: 'blue' });
+  };
+
   const clearStageFilter = () => {
     setFilterStage(null);
     setSearchParams({});
@@ -248,10 +326,21 @@ export function Candidates() {
   const SortIcon = ({ column }: { column: string }) => {
     if (sortBy !== column) return null;
     return sortOrder === 'asc' ? (
-      <IconSortAscending size={14} />
+      <IconSortAscending size={14} aria-hidden="true" />
     ) : (
-      <IconSortDescending size={14} />
+      <IconSortDescending size={14} aria-hidden="true" />
     );
+  };
+
+  /* AUD-P2-01: `aria-sort` belongs on the <th> itself, not the button inside
+   * it — that's what makes a screen reader announce "sorted ascending"/
+   * "descending" as part of the column header, rather than needing a
+   * separate, easy-to-miss text label. Unsorted-but-sortable columns get
+   * 'none' (a real state, distinct from a non-sortable column like Email,
+   * which gets no aria-sort attribute at all). */
+  const ariaSortFor = (column: string): 'ascending' | 'descending' | 'none' => {
+    if (sortBy !== column) return 'none';
+    return sortOrder === 'asc' ? 'ascending' : 'descending';
   };
 
   return (
@@ -280,9 +369,11 @@ export function Candidates() {
             </Group>
           )}
         </div>
-        <Button leftSection={<IconPlus size={16} />} onClick={openCreate} size={showCompactList ? 'sm' : 'md'}>
-          {showCompactList ? 'Add' : 'Create new candidate'}
-        </Button>
+        {canManage && (
+          <Button leftSection={<IconPlus size={16} />} onClick={openCreate} size={showCompactList ? 'sm' : 'md'}>
+            {showCompactList ? 'Add' : 'Create new candidate'}
+          </Button>
+        )}
       </Flex>
 
       <Flex
@@ -395,39 +486,39 @@ export function Candidates() {
         <Table striped highlightOnHover verticalSpacing="sm">
           <Table.Thead>
             <Table.Tr>
-              <Table.Th
-                style={{ cursor: 'pointer' }}
-                onClick={() => handleSort('lastName')}
-              >
-                <Group gap={4}>
+              <Table.Th aria-sort={ariaSortFor('lastName')} p={0}>
+                <UnstyledButton
+                  onClick={() => handleSort('lastName')}
+                  style={{ display: 'flex', width: '100%', alignItems: 'center', gap: 4, padding: 'var(--table-vertical-spacing) var(--table-horizontal-spacing, var(--mantine-spacing-xs))' }}
+                >
                   Candidate <SortIcon column="lastName" />
-                </Group>
+                </UnstyledButton>
               </Table.Th>
-              <Table.Th
-                style={{ cursor: 'pointer' }}
-                onClick={() => handleSort('jobTitle')}
-              >
-                <Group gap={4}>
+              <Table.Th aria-sort={ariaSortFor('jobTitle')} p={0}>
+                <UnstyledButton
+                  onClick={() => handleSort('jobTitle')}
+                  style={{ display: 'flex', width: '100%', alignItems: 'center', gap: 4, padding: 'var(--table-vertical-spacing) var(--table-horizontal-spacing, var(--mantine-spacing-xs))' }}
+                >
                   Job Title <SortIcon column="jobTitle" />
-                </Group>
+                </UnstyledButton>
               </Table.Th>
               <Table.Th>Email</Table.Th>
               <Table.Th style={{ whiteSpace: 'nowrap' }}>Phone</Table.Th>
-              <Table.Th
-                style={{ cursor: 'pointer' }}
-                onClick={() => handleSort('score')}
-              >
-                <Group gap={4}>
+              <Table.Th aria-sort={ariaSortFor('score')} p={0}>
+                <UnstyledButton
+                  onClick={() => handleSort('score')}
+                  style={{ display: 'flex', width: '100%', alignItems: 'center', gap: 4, padding: 'var(--table-vertical-spacing) var(--table-horizontal-spacing, var(--mantine-spacing-xs))' }}
+                >
                   Score <SortIcon column="score" />
-                </Group>
+                </UnstyledButton>
               </Table.Th>
-              <Table.Th
-                style={{ cursor: 'pointer' }}
-                onClick={() => handleSort('status')}
-              >
-                <Group gap={4}>
+              <Table.Th aria-sort={ariaSortFor('status')} p={0}>
+                <UnstyledButton
+                  onClick={() => handleSort('status')}
+                  style={{ display: 'flex', width: '100%', alignItems: 'center', gap: 4, padding: 'var(--table-vertical-spacing) var(--table-horizontal-spacing, var(--mantine-spacing-xs))' }}
+                >
                   Status <SortIcon column="status" />
-                </Group>
+                </UnstyledButton>
               </Table.Th>
               <Table.Th>Tools</Table.Th>
             </Table.Tr>
@@ -500,68 +591,76 @@ export function Candidates() {
                   </Group>
                 </Table.Td>
                 <Table.Td>
-                  <Group gap={4} onClick={(e) => e.stopPropagation()}>
-                    {/* Named per row: in a 221-row table, an unlabelled pencil
-                        tells a screen-reader user nothing about which candidate
-                        it edits. */}
-                    <ActionIcon
-                      variant="subtle"
-                      color="gray"
-                      size="sm"
-                      aria-label={`Edit ${candidate.firstName} ${candidate.lastName}`}
-                      onClick={() => {
-                        setCandidateToEdit(candidate);
-                        openEditModal();
-                      }}
-                    >
-                      <IconEdit size={16} />
-                    </ActionIcon>
-                    <ActionIcon
-                      variant="subtle"
-                      color="red"
-                      size="sm"
-                      aria-label={`Delete ${candidate.firstName} ${candidate.lastName}`}
-                      onClick={() => {
-                        setCandidateToDelete(candidate);
-                        openDelete();
-                      }}
-                    >
-                      <IconTrash size={16} />
-                    </ActionIcon>
-                    <Menu shadow="md" width={160}>
-                      <Menu.Target>
-                        <ActionIcon
-                          variant="subtle"
-                          color="gray"
-                          size="sm"
-                          aria-label={`More actions for ${candidate.firstName} ${candidate.lastName}`}
-                        >
-                          <IconDots size={16} />
-                        </ActionIcon>
-                      </Menu.Target>
-                      <Menu.Dropdown>
-                        <Menu.Item
-                          leftSection={<IconEdit size={14} />}
-                          onClick={() => {
-                            setCandidateToEdit(candidate);
-                            openEditModal();
-                          }}
-                        >
-                          Edit
-                        </Menu.Item>
-                        <Menu.Item
-                          leftSection={<IconTrash size={14} />}
-                          color="red"
-                          onClick={() => {
-                            setCandidateToDelete(candidate);
-                            openDelete();
-                          }}
-                        >
-                          Delete
-                        </Menu.Item>
-                      </Menu.Dropdown>
-                    </Menu>
-                  </Group>
+                  {canManage ? (
+                    <Group gap={4} onClick={(e) => e.stopPropagation()}>
+                      {/* Named per row: in a 221-row table, an unlabelled pencil
+                          tells a screen-reader user nothing about which candidate
+                          it edits. */}
+                      <ActionIcon
+                        variant="subtle"
+                        color="gray"
+                        size="sm"
+                        aria-label={`Edit ${candidate.firstName} ${candidate.lastName}`}
+                        onClick={() => {
+                          setCandidateToEdit(candidate);
+                          openEditModal();
+                        }}
+                      >
+                        <IconEdit size={16} />
+                      </ActionIcon>
+                      <ActionIcon
+                        variant="subtle"
+                        color="red"
+                        size="sm"
+                        aria-label={`Delete ${candidate.firstName} ${candidate.lastName}`}
+                        onClick={() => {
+                          setCandidateToDelete(candidate);
+                          openDelete();
+                        }}
+                      >
+                        <IconTrash size={16} />
+                      </ActionIcon>
+                      <Menu shadow="md" width={160}>
+                        <Menu.Target>
+                          <ActionIcon
+                            variant="subtle"
+                            color="gray"
+                            size="sm"
+                            aria-label={`More actions for ${candidate.firstName} ${candidate.lastName}`}
+                          >
+                            <IconDots size={16} />
+                          </ActionIcon>
+                        </Menu.Target>
+                        <Menu.Dropdown>
+                          <Menu.Item
+                            leftSection={<IconEdit size={14} />}
+                            onClick={() => {
+                              setCandidateToEdit(candidate);
+                              openEditModal();
+                            }}
+                          >
+                            Edit
+                          </Menu.Item>
+                          <Menu.Item
+                            leftSection={<IconTrash size={14} />}
+                            color="red"
+                            onClick={() => {
+                              setCandidateToDelete(candidate);
+                              openDelete();
+                            }}
+                          >
+                            Delete
+                          </Menu.Item>
+                        </Menu.Dropdown>
+                      </Menu>
+                    </Group>
+                  ) : (
+                    candidate.shortlisted && (
+                      <Badge size="xs" color="yellow" variant="light">
+                        Shortlisted
+                      </Badge>
+                    )
+                  )}
                 </Table.Td>
               </Table.Tr>
             ))}
@@ -618,19 +717,51 @@ export function Candidates() {
             onPrev={handlePrevCandidate}
             onNext={handleNextCandidate}
             onClose={closeDetail}
-            onEdit={() => {
-              setCandidateToEdit(selectedCandidate);
-              closeDetail();
-              openEditModal();
-            }}
-            onDelete={() => {
-              setCandidateToDelete(selectedCandidate);
-              openDelete();
-            }}
-            onStageChange={handleStageChange}
+            onEdit={
+              canManage
+                ? () => {
+                    setCandidateToEdit(selectedCandidate);
+                    closeDetail();
+                    openEditModal();
+                  }
+                : undefined
+            }
+            onDelete={
+              canManage
+                ? () => {
+                    setCandidateToDelete(selectedCandidate);
+                    openDelete();
+                  }
+                : undefined
+            }
+            onStageChange={canManage ? handleStageChange : undefined}
+            onShortlist={role === 'hiring_manager' ? handleShortlistToggle : undefined}
+            onReject={
+              role === 'hiring_manager'
+                ? () => {
+                    setCandidateToReject(selectedCandidate);
+                    openReject();
+                  }
+                : undefined
+            }
+            onAddFeedback={can('candidates.review') ? handleAddFeedback : undefined}
+            onScheduleInterview={can('interviews.manage') ? openSchedule : undefined}
           />
         )}
       </Drawer>
+
+      {/* Reject Confirmation — destructive-ish for the candidate, so it's
+          confirmed, not instant, per the edge-cases doc. */}
+      <Modal opened={rejectOpened} onClose={closeReject} title="Reject candidate" size="sm">
+        <Text size="sm" mb="lg">
+          Reject <strong>{candidateToReject?.firstName} {candidateToReject?.lastName}</strong> for this role? They'll see a
+          respectful status update, and you'll have a few seconds to undo it after confirming.
+        </Text>
+        <Group justify="flex-end">
+          <Button variant="light" onClick={closeReject}>Cancel</Button>
+          <Button color="red" onClick={confirmReject}>Reject</Button>
+        </Group>
+      </Modal>
 
       {/* Create Modal */}
       <Modal
@@ -708,6 +839,12 @@ export function Candidates() {
           <Button color="red" onClick={handleDelete}>Delete</Button>
         </Group>
       </Modal>
+
+      <ScheduleInterviewModal
+        opened={scheduleOpened}
+        onClose={closeSchedule}
+        initialCandidateId={selectedCandidate?.id}
+      />
     </Box>
   );
 }

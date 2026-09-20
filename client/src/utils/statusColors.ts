@@ -19,7 +19,29 @@ export const STAGE_COLORS: Record<string, MantineColor> = {
   offer: 'orange',
   hired: 'green',
   rejected: 'red',
+  /* Candidate-initiated, not recruiter-initiated — deliberately not red,
+     so a withdrawal doesn't read as a rejection in the pipeline view. */
+  withdrawn: 'gray',
 };
+
+/**
+ * Labelled options for every Select/menu that lets someone choose or filter
+ * by pipeline stage — Candidates' filter dropdown, the candidate drawer's
+ * stage picker, and the Pipeline board's columns all read from this one
+ * list now instead of keeping their own (Candidates' copy was missing
+ * `withdrawn`, so a withdrawn candidate had no way to be filtered to or
+ * labelled correctly there).
+ */
+export const PIPELINE_STAGE_OPTIONS: { value: string; label: string }[] = [
+  { value: 'applied', label: 'Applied' },
+  { value: 'screening', label: 'Screening' },
+  { value: 'interview', label: 'Interview' },
+  { value: 'assessment', label: 'Assessment' },
+  { value: 'offer', label: 'Offer' },
+  { value: 'hired', label: 'Hired' },
+  { value: 'rejected', label: 'Rejected' },
+  { value: 'withdrawn', label: 'Withdrawn' },
+];
 
 export function getStageColor(stage?: string): MantineColor {
   if (!stage) return 'gray';

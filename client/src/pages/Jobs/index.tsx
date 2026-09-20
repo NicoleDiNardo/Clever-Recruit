@@ -32,16 +32,18 @@ import {
   IconUsers,
   IconBuilding,
   IconCheck,
+  IconEye,
 } from '@tabler/icons-react';
 import { mockCompanies } from '../../data/mockData';
 import type { Job } from '../../types';
-import { mockJobs as initialJobs } from '../../data/mockData';
 import { useCandidates } from '../../context/CandidatesContext';
+import { useJobs } from '../../context/JobsContext';
 import { EmptyState } from '../../components/EmptyState';
+import { JobPreviewModal } from './JobPreviewModal';
 
 export function Jobs() {
   const { candidates } = useCandidates();
-  const [jobs, setJobs] = useState<Job[]>(initialJobs);
+  const { jobs, setJobs } = useJobs();
   const [search, setSearch] = useState('');
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [detailOpened, { open: openDetail, close: closeDetail }] = useDisclosure(false);
@@ -50,6 +52,14 @@ export function Jobs() {
   const [deleteOpened, { open: openDelete, close: closeDelete }] = useDisclosure(false);
   const [jobToDelete, setJobToDelete] = useState<Job | null>(null);
   const isMobile = useMediaQuery('(max-width: 768px)');
+
+  // The "preview as a candidate would see it" step — AUD-P1-03. `previewJob`
+  // is whatever's being looked at (an unsaved draft from the create/edit
+  // form, or an already-saved job from the detail drawer); `previewSource`
+  // decides which actions the preview modal offers.
+  const [previewJob, setPreviewJob] = useState<Job | null>(null);
+  const [previewSource, setPreviewSource] = useState<'create' | 'edit' | 'view' | null>(null);
+  const [previewOpened, { open: openPreview, close: closePreview }] = useDisclosure(false);
 
   const filteredJobs = jobs.filter((j) => {
     if (!search) return true;
@@ -66,6 +76,7 @@ export function Jobs() {
       case 'open': return 'green';
       case 'closed': return 'red';
       case 'paused': return 'yellow';
+      case 'draft': return 'gray';
       default: return 'gray';
     }
   };
@@ -78,7 +89,9 @@ export function Jobs() {
       type: 'Full-time',
       salary: '',
       description: '',
-      status: 'open',
+      // New jobs start as drafts — AUD-P1-03. Only Publish (from the
+      // preview step, or "Save as draft" here) decides otherwise.
+      status: 'draft',
     },
     validate: {
       title: (v) => (v.length < 1 ? 'Title is required' : null),
@@ -102,30 +115,49 @@ export function Jobs() {
     },
   });
 
-  const handleCreate = createForm.onSubmit((values) => {
+  const buildJobFromCreateForm = (status: string): Job => {
+    const values = createForm.values;
     const company = mockCompanies.find((c) => c.id === values.companyId);
-    const newJob: Job = {
+    return {
       id: String(Date.now()),
       title: values.title,
       description: values.description,
       location: values.location,
       type: values.type,
       salary: values.salary,
-      status: values.status as Job['status'],
+      status,
       companyId: values.companyId,
       company,
       createdAt: new Date().toISOString(),
     };
+  };
+
+  const saveNewJob = (status: string) => {
+    if (createForm.validate().hasErrors) return;
+    const newJob = buildJobFromCreateForm(status);
     setJobs((prev) => [newJob, ...prev]);
     closeCreate();
+    closePreview();
     createForm.reset();
     notifications.show({
-      title: 'Job Created',
-      message: `"${newJob.title}" has been created successfully.`,
+      title: status === 'open' ? 'Job published' : 'Draft saved',
+      message:
+        status === 'open'
+          ? `"${newJob.title}" is now live on the careers site.`
+          : `"${newJob.title}" saved as a draft — it won't show up on the careers site until you publish it.`,
       color: 'green',
       icon: <IconCheck size={16} />,
     });
-  });
+  };
+
+  const handleCreate = createForm.onSubmit(() => saveNewJob('draft'));
+
+  const handlePreviewFromCreate = () => {
+    if (createForm.validate().hasErrors) return;
+    setPreviewJob(buildJobFromCreateForm(createForm.values.status));
+    setPreviewSource('create');
+    openPreview();
+  };
 
   const handleOpenEdit = (job: Job) => {
     editForm.setValues({
@@ -141,27 +173,33 @@ export function Jobs() {
     openEdit();
   };
 
-  const handleEditSubmit = editForm.onSubmit((values) => {
-    if (!selectedJob) return;
+  const saveEdit = (status: string) => {
+    if (!selectedJob || editForm.validate().hasErrors) return;
+    const values = editForm.values;
     const company = mockCompanies.find((c) => c.id === values.companyId);
-    setJobs((prev) =>
-      prev.map((j) =>
-        j.id === selectedJob.id
-          ? { ...j, ...values, company, companyId: values.companyId, status: values.status as Job['status'] }
-          : j
-      )
-    );
-    if (selectedJob) {
-      setSelectedJob({ ...selectedJob, ...values, company, companyId: values.companyId, status: values.status as Job['status'] });
-    }
+    const updated = { ...selectedJob, ...values, company, companyId: values.companyId, status };
+    setJobs((prev) => prev.map((j) => (j.id === selectedJob.id ? updated : j)));
+    setSelectedJob(updated);
     closeEdit();
+    closePreview();
     notifications.show({
-      title: 'Job Updated',
+      title: status === 'open' && selectedJob.status !== 'open' ? 'Job published' : 'Job updated',
       message: `"${values.title}" has been updated successfully.`,
       color: 'blue',
       icon: <IconCheck size={16} />,
     });
-  });
+  };
+
+  const handleEditSubmit = editForm.onSubmit((values) => saveEdit(values.status));
+
+  const handlePreviewFromEdit = () => {
+    if (!selectedJob || editForm.validate().hasErrors) return;
+    const values = editForm.values;
+    const company = mockCompanies.find((c) => c.id === values.companyId);
+    setPreviewJob({ ...selectedJob, ...values, company, companyId: values.companyId, status: values.status });
+    setPreviewSource('edit');
+    openPreview();
+  };
 
   const handleCloseJob = (job: Job) => {
     setJobs((prev) =>
@@ -418,7 +456,35 @@ export function Jobs() {
               >
                 Edit Job
               </Button>
-              {selectedJob.status !== 'closed' ? (
+              <Button
+                variant="light"
+                leftSection={<IconEye size={16} />}
+                onClick={() => {
+                  setPreviewJob(selectedJob);
+                  setPreviewSource('view');
+                  openPreview();
+                }}
+              >
+                Preview
+              </Button>
+              {selectedJob.status === 'draft' && (
+                <Button
+                  color="green"
+                  onClick={() => {
+                    setJobs((prev) => prev.map((j) => (j.id === selectedJob.id ? { ...j, status: 'open' } : j)));
+                    setSelectedJob({ ...selectedJob, status: 'open' });
+                    notifications.show({
+                      title: 'Job published',
+                      message: `"${selectedJob.title}" is now live on the careers site.`,
+                      color: 'green',
+                      icon: <IconCheck size={16} />,
+                    });
+                  }}
+                >
+                  Publish
+                </Button>
+              )}
+              {selectedJob.status !== 'closed' && selectedJob.status !== 'draft' ? (
                 <Button
                   variant="light"
                   color="orange"
@@ -426,7 +492,7 @@ export function Jobs() {
                 >
                   Close Job
                 </Button>
-              ) : (
+              ) : selectedJob.status === 'closed' ? (
                 <Button
                   variant="light"
                   color="green"
@@ -440,7 +506,7 @@ export function Jobs() {
                 >
                   Reopen Job
                 </Button>
-              )}
+              ) : null}
               <Button
                 variant="light"
                 color="red"
@@ -502,8 +568,9 @@ export function Jobs() {
               {...createForm.getInputProps('description')}
             />
             <Group justify="flex-end" mt="md">
-              <Button variant="light" onClick={closeCreate}>Cancel</Button>
-              <Button type="submit">Create Job</Button>
+              <Button variant="subtle" color="gray" onClick={closeCreate}>Cancel</Button>
+              <Button variant="light" onClick={handlePreviewFromCreate}>Preview</Button>
+              <Button type="submit">Save as draft</Button>
             </Group>
           </Stack>
         </form>
@@ -550,10 +617,12 @@ export function Jobs() {
             <Select
               label="Status"
               data={[
+                { value: 'draft', label: 'Draft (not visible to candidates)' },
                 { value: 'open', label: 'Open' },
-                { value: 'closed', label: 'Closed' },
                 { value: 'paused', label: 'Paused' },
+                { value: 'closed', label: 'Closed' },
               ]}
+              allowDeselect={false}
               {...editForm.getInputProps('status')}
             />
             <Textarea
@@ -563,7 +632,8 @@ export function Jobs() {
               {...editForm.getInputProps('description')}
             />
             <Group justify="flex-end" mt="md">
-              <Button variant="light" onClick={closeEdit}>Cancel</Button>
+              <Button variant="subtle" color="gray" onClick={closeEdit}>Cancel</Button>
+              <Button variant="light" onClick={handlePreviewFromEdit}>Preview</Button>
               <Button type="submit">Save Changes</Button>
             </Group>
           </Stack>
@@ -580,6 +650,33 @@ export function Jobs() {
           <Button color="red" onClick={handleDeleteJob}>Delete</Button>
         </Group>
       </Modal>
+
+      <JobPreviewModal
+        job={previewJob}
+        opened={previewOpened}
+        onClose={closePreview}
+        onSaveDraft={previewSource === 'create' ? () => saveNewJob('draft') : undefined}
+        onPublish={
+          previewSource === 'create'
+            ? () => saveNewJob('open')
+            : previewSource === 'edit'
+              ? () => saveEdit('open')
+              : previewSource === 'view' && previewJob?.status !== 'open'
+                ? () => {
+                    if (!previewJob) return;
+                    setJobs((prev) => prev.map((j) => (j.id === previewJob.id ? { ...j, status: 'open' } : j)));
+                    setSelectedJob((sel) => (sel && sel.id === previewJob.id ? { ...sel, status: 'open' } : sel));
+                    closePreview();
+                    notifications.show({
+                      title: 'Job published',
+                      message: `"${previewJob.title}" is now live on the careers site.`,
+                      color: 'green',
+                      icon: <IconCheck size={16} />,
+                    });
+                  }
+                : undefined
+        }
+      />
     </Box>
   );
 }
